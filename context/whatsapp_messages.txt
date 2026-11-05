@@ -1,0 +1,70 @@
+WHATSAPP COURSE-GROUP MESSAGES (ANONYMIZED TRANSCRIPT)
+=======================================================
+Source: 3 screenshots of a course WhatsApp group chat. The screenshots are NOT stored in this
+repository. All sender/receiver names, phone numbers and profile identifiers were removed and
+replaced with generic labels. Wording of the messages is kept verbatim (including original
+spelling/abbreviations such as "u", "atleast", "diff").
+
+Labels are consistent across this file: the same label = the same person.
+Whether any participant is a TA/instructor or a fellow student is NOT known from the screenshots.
+
+Chronology note (read this first):
+  * Only Thread 3 shows a date separator (29/10/2026). The other threads show a time of day only,
+    so their dates are NOT recoverable from the screenshots.
+  * Therefore the threads are listed in the order the screenshots were captured, which is NOT
+    guaranteed to be chronological. Messages INSIDE each thread are in chronological order.
+  * Times are as shown in the screenshot (HH:MM, 24-hour, chat-local time).
+
+-------------------------------------------------------
+THREAD 1  (date not shown)
+-------------------------------------------------------
+[21:17] Participant A:
+    Should we add drain/source junction areas (AD = AS = W x Ldiff) to the transistor netlists,
+    or keep them out like the example netlist?
+    @`ta'
+    (The "@`ta'" tag at the end of the message is shown exactly like this in the screenshot;
+     it looks like an attempt to tag the TAs. [FLAG: interpretation not certain])
+
+[22:16 (message marked "Edited")] Participant B (replying to Participant A's message above):
+    Yup, add it
+
+-------------------------------------------------------
+THREAD 2  (date not shown)
+-------------------------------------------------------
+[18:18] Participant C:
+    Are we supposed to make datasets for all tech nodes and model types given ?
+
+[time not visible] Participant D (replying to Participant C's message above):
+    No only the assigned one
+
+-------------------------------------------------------
+THREAD 3  (question: date not shown, 22:19; reply: 29/10/2026)
+-------------------------------------------------------
+[22:19, a day BEFORE 29/10/2026 - the date separator appears between the question and the reply]
+Participant E:
+    Doubt: Do we have to make 4 ML models for each transistor case
+
+[29/10/2026, time not visible] Participant D (replying to Participant E's message above):
+    yes, u need to compare with atleast 4 diff techniques for each transistor case, but u need
+    finalize only 1, keep the best one.
+
+-------------------------------------------------------
+ITEMS FLAGGED FOR HUMAN REVIEW
+-------------------------------------------------------
+1. Thread order / dates (see chronology note). Thread 1 and Thread 2 dates are unknown.
+2. Thread 1: "@`ta'" tag could not be interpreted with certainty.
+3. Thread 1: the "Edited 22:16" label means the reply may have originally said something else;
+   only the final text "Yup, add it" is visible.
+4. Authority of the answerers (is Participant B / D a TA?) is not stated in the screenshots.
+   Treat these answers as "informal clarifications" until confirmed by the course staff.
+5. Thread 1 does not say what Ldiff is. The TA example netlist defines .PARAM Ldiff=44n
+   (= 2 x Lmin for the 22 nm node). Perimeters (PD/PS) were not mentioned.
+
+-------------------------------------------------------
+TECHNICAL TAKEAWAYS (our interpretation, not verbatim)
+-------------------------------------------------------
+T1. Add junction areas AD = AS = W x Ldiff to every transistor in the SPICE netlists
+    (single-transistor, gate and test-circuit netlists), unlike the example netlist.
+T2. Generate datasets only for the team's assigned technology node / model file (not all nodes).
+T3. For EACH of the 4 transistor cases (NMOS ON, NMOS OFF, PMOS ON, PMOS OFF): train and compare
+    at least 4 different ML techniques, then finalize only ONE (the best) per case.
