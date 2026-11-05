@@ -30,3 +30,4 @@ Thumbs.db
 .vscode/
 .idea/
 models_candidates/
+data/circuit/parts/
