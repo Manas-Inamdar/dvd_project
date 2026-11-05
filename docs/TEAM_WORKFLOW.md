@@ -19,14 +19,11 @@ over any task. Because Claude forgets between sessions, the repository documents
 * The GitHub repo must be **private** while it contains course material.
 
 ## 3. Git workflow
-* `main`: stable, always runnable. No direct pushes of experimental work.
-* Branches: `initial-context`, then `feature/p1-spice-plumbing`, `feature/p2-datasets`, `feature/p3-ml-models`, `feature/p4-gates`, `feature/p5-circuit`, `feature/p6-report`; fixes `fix/<topic>`; docs `docs/<topic>`.
-* Commits: small, imperative subject (<= 72 chars), body says what/why. Example: `Add NMOS ON single-transistor netlist builder`.
-  Claude-assisted commits end with `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
-* **Standing rule (Manas, 2026-11-06): after each phase is done and tested, merge it into `main`** (PR per phase, merge commit, branches kept) so `main` always reflects the latest completed phase.
-* Merge to `main` through a pull request after: (a) tests pass, (b) `PROJECT_STATUS.md` updated, (c) one teammate has looked at the diff.
-  Squash or merge commit - either, but never rewrite shared history (no force-push on shared branches).
-* Before starting: `git fetch` and `git status`; never overwrite existing work without checking the diff.
+**Decision (Manas, 2026-11-06): the repository has a single branch, `main`.** All work is committed directly to `main`; the earlier per-phase feature branches and pull requests (#1-#8) were merged and then deleted.
+* Commits: small, imperative subject (<= 72 chars), body says what/why. Claude-assisted commits end with `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+* Before committing: `git fetch`, `git status`, look at the diff; never overwrite existing work without checking; never force-push or rewrite history.
+* If teammates work in parallel, pull (`git pull --ff-only`) before starting and push small commits often to avoid conflicts.
+* Tests (`pytest`) should pass before pushing.
 
 ## 4. Suggested division of work (if the four of you want to parallelize)
 | Member | Focus | Phases | Needs from others |

@@ -2,7 +2,7 @@
 
 Format: ID | status (Accepted / Proposed / Rejected) | decision | alternatives | reason. Add new entries at the bottom; never rewrite history (supersede instead).
 
-## D-001 | Accepted | Branching: `main` is stable; work on feature branches; initial upload on `initial-context`
+## D-001 | Superseded by D-040 | Branching: `main` is stable; work on feature branches; initial upload on `initial-context`
 Alternative: commit straight to `main`. Reason: Manas's requirement; protects a stable baseline in a 4-person project.
 
 ## D-002 | Accepted | WhatsApp screenshots are NOT stored in the repo; replaced by an anonymized transcript
@@ -133,3 +133,6 @@ Scripts: 01b (extra data), 05b (refit, non-destructive), 05c (validation-based s
 
 ## D-039 | Proposed (not done) | Further accuracy idea: oversample the edges of the (Vd, Vs) domain in the extra training data
 Would address the untested hypothesis of D-038 (gate operating points lie at Vs = 0, Vd = VDD, Vds ~ 0). The specified 10,000-row datasets must stay uniform; only extra training rows could be non-uniform. Not pursued: Manas asked not to over-engineer; the 99 % target remains unmet (headline mean accuracy 92.8 % gates / 92.5 % circuit).
+
+## D-040 | Accepted | Single branch `main`; no feature branches or PRs (Manas, 2026-11-06)
+Supersedes D-001 and the 'merge each phase through a PR' rule. All eight earlier branches (initial-context, feature/p1 ... p6-overleaf-bundle) were verified fully merged into `main` (`git branch --no-merged main` empty, clean working tree) and deleted locally and on GitHub; the PR history (#1-#8) remains on GitHub.

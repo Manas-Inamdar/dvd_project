@@ -71,7 +71,7 @@ Last updated: 2026-11-06 (Session 1, all phases complete).
 | Item | Value |
 |---|---|
 | Remote | `origin` = https://github.com/Manas-Inamdar/dvd_project.git (PRIVATE) |
-| Branches | `main` (1 commit), `initial-context` (PR #1), `feature/p1-spice-plumbing` (PR #2, base initial-context), `feature/p2-datasets` (Phase 2, stacked on p1) |
+| Branches | only `main` (D-040); all feature branches were merged and deleted |
 | Commit identity | repo-local: Manas Inamdar + GitHub noreply email |
 
 ## Known bugs / blockers
@@ -103,3 +103,4 @@ Last updated: 2026-11-06 (Session 1, all phases complete).
 * 2026-11-06 (cont.): Phase 5 done: 51,200 circuit runs, circuit-level median error 6.4 %. Assumptions A1-A4 recorded. Phase 3b started.
 * 2026-11-06 (cont.): Phase 3b done; enlarged training set improved transistor models but not gate level; D-038 headline = 10k models.
 * 2026-11-06 (cont.): Phase 6: reproducibility check passed, README, report sources finished.
+* 2026-11-06 (end): Overleaf bundle built (`scripts/13_package_report.py`); repository reduced to the single branch `main` (D-040).
