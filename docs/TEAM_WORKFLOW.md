@@ -23,6 +23,7 @@ over any task. Because Claude forgets between sessions, the repository documents
 * Branches: `initial-context`, then `feature/p1-spice-plumbing`, `feature/p2-datasets`, `feature/p3-ml-models`, `feature/p4-gates`, `feature/p5-circuit`, `feature/p6-report`; fixes `fix/<topic>`; docs `docs/<topic>`.
 * Commits: small, imperative subject (<= 72 chars), body says what/why. Example: `Add NMOS ON single-transistor netlist builder`.
   Claude-assisted commits end with `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+* **Standing rule (Manas, 2026-11-06): after each phase is done and tested, merge it into `main`** (PR per phase, merge commit, branches kept) so `main` always reflects the latest completed phase.
 * Merge to `main` through a pull request after: (a) tests pass, (b) `PROJECT_STATUS.md` updated, (c) one teammate has looked at the diff.
   Squash or merge commit - either, but never rewrite shared history (no force-push on shared branches).
 * Before starting: `git fetch` and `git status`; never overwrite existing work without checking the diff.

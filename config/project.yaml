@@ -24,3 +24,9 @@ data:
   n_samples: 10000
   seed: 20261105
   columns: [vdd, temp, w, vd, vs, vg, vb, vth0, toxe, ndep, u0, xj, id, ig, is, ib]
+
+ml:
+  i_floor: 1.0e-15        # A; below this the BSIM4/ngspice value is numerical noise (D-027). Must equal metrics.I_FLOOR
+  split_seed: 20261105
+  split_fractions: [0.70, 0.15, 0.15]   # train / validation / test
+  min_resolved_frac: 0.05 # currents with fewer resolved samples are not scored in the comparison table
