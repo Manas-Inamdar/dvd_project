@@ -40,5 +40,7 @@ Deliverables list: `docs/PROJECT_CONTEXT.md` section 6. Assignment PDF is author
 * Units: SI in code (A, V, m, K only where required; temperature in degC as in SPICE `.temp`).
 
 ## How to run / test
-Nothing runs yet (Phase 0). When Phase 1 lands this section must list: environment setup, `python scripts/00_check_env.py`,
-`pytest`, and how to run scripts 01..12 in order. Simulator: ngspice (not installed yet - see plan task 1.1).
+* Env (Windows): `python -m venv .venv` then `.venv\Scripts\python.exe -m pip install -r requirements.txt` (pandas is pinned: Smart App Control blocks pandas 3.x binaries on the dev PC).
+* Simulator: ngspice 47 (not installed permanently yet; set `NGSPICE_EXE` to `ngspice_con.exe`). Check: `.venv\Scripts\python.exe scripts/00_check_env.py`.
+* Tests: `.venv\Scripts\python.exe -m pytest -q` (smoke tests auto-skip without ngspice).
+* Pipeline scripts `scripts/01_..` to `12_..` do not exist yet (Phase 2+); they will run in numbered order.
