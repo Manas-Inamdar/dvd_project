@@ -22,7 +22,7 @@ Last updated: 2026-11-06, Session 1 continued.
 - [x] Manas confirmed the transcript (2026-11-06); the 3 original WhatsApp screenshots were permanently deleted from the local context folder. Only the anonymized transcript remains.
 - [x] Repo visibility is now **PRIVATE** (verified with `gh repo view` on 2026-11-06).
 - [ ] **Push of `initial-context` + PR to `main`**: the first push attempt was blocked by the Claude Code permission classifier; waiting for Manas to allow it or push manually (`git push -u origin initial-context`).
-- [x] Local commit on `initial-context` created (NOT pushed). Push + PR to `main` pending repo privacy decision.
+- [x] Local commit on `initial-context` created (NOT pushed). Push + PR to `main` pending (see above).
 - [ ] Ask TAs: Q1 (leakage definition), Q2 (gate widths), Q3 (Ldiff/PD/PS), Q5 (accuracy metric), Q6/Q7 (internal node voltages in Part C / "from both").
 - [ ] Phase 1 onward (ngspice install, spike, ...). See IMPLEMENTATION_PLAN.md.
 
@@ -45,7 +45,7 @@ Last updated: 2026-11-06, Session 1 continued.
 Not transferred: duplicate annotated PDF (byte-identical), `model.tar` (old, lacks 22nm_LP, extra bulk models not needed), the zip wrapper (contents extracted), WhatsApp screenshots.
 
 ## Known bugs / blockers
-* None in code (no code yet). Blockers: repo visibility; unanswered Q1/Q2/Q6; ngspice not installed.
+* None in code (no code yet). Blockers: push permission; unanswered Q1/Q2/Q6; ngspice not installed.
 
 ## Tests performed and results
 | Test | Result |
