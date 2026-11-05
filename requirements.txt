@@ -7,3 +7,4 @@ pyyaml
 pytest
 joblib
 lightgbm
+pymupdf  # optional: scripts/14_render_report_pdf.py renders the report to PDF without a LaTeX engine

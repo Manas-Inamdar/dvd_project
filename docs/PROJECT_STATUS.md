@@ -104,3 +104,4 @@ Last updated: 2026-11-06 (Session 1, all phases complete).
 * 2026-11-06 (cont.): Phase 3b done; enlarged training set improved transistor models but not gate level; D-038 headline = 10k models.
 * 2026-11-06 (cont.): Phase 6: reproducibility check passed, README, report sources finished.
 * 2026-11-06 (end): Overleaf bundle built (`scripts/13_package_report.py`); repository reduced to the single branch `main` (D-040).
+* 2026-11-06 (end): no LaTeX engine can run here (permission system blocks downloaded executables), so `scripts/14_render_report_pdf.py` renders the report sources to `dist/report.pdf` via PyMuPDF (16 pages, 8 figures, 15 tables, bookmarks; visually inspected page by page). It is NOT a pdfLaTeX typeset; the Overleaf zip (`dist/report_overleaf.zip`) remains the way to get the LaTeX-typeset PDF.

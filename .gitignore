@@ -31,3 +31,4 @@ Thumbs.db
 .idea/
 models_candidates/
 data/circuit/parts/
+dist/_*
