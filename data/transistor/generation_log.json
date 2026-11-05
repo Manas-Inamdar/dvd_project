@@ -1,0 +1,27 @@
+{
+  "simulator": "ngspice-47 : Circuit level simulation program",
+  "seed": 20261105,
+  "n": 10000,
+  "cases": {
+    "nmos_on": {
+      "rows": 10000,
+      "failed_sims_replaced": 0,
+      "seconds": 124.6
+    },
+    "nmos_off": {
+      "rows": 10000,
+      "failed_sims_replaced": 0,
+      "seconds": 129.2
+    },
+    "pmos_on": {
+      "rows": 10000,
+      "failed_sims_replaced": 0,
+      "seconds": 124.2
+    },
+    "pmos_off": {
+      "rows": 10000,
+      "failed_sims_replaced": 0,
+      "seconds": 131.2
+    }
+  }
+}
