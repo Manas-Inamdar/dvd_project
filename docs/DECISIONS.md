@@ -80,3 +80,14 @@ Source: official ngspice SourceForge build `ngspice-47_64.7z`. Version is record
 
 ## D-023 | Accepted | Failed simulations are replaced from deterministic extra batches (seed, case, batch), never re-tried with changed settings
 So each CSV has exactly N valid rows and the failure count is reported.
+
+## D-024 | Proposed | Handling of noise-level targets in the ML models (Phase 3)
+Finding: some targets (PMOS OFF ig/ib, parts of NMOS ON ig, PMOS ON ib, OFF currents below ~1e-16 A) are BSIM4 arithmetic noise, not learnable physics.
+Proposal: (1) targets are modelled as sign + log10(max(|I|, I_floor)) with I_floor = 1e-16 A (anything below the floor is "at the floor"), (2) predictions below the floor are reported as 0 / floor, (3) metrics: R2 and median/P95 error computed on samples above the floor, plus the floored relative error of D-021 on all samples, plus the fraction of rows below the floor, so the reader sees exactly what is and is not predictable.
+Alternative considered: train on raw currents (dominated by the largest values, poor on 10 decades) - rejected. To be validated empirically in Phase 3 and confirmed by Manas/TAs (Q5).
+
+## D-025 | Accepted | Keep the single-source-per-terminal netlist; TA-style "0 V series source" topology rejected
+Tested 2026-11-06: identical quantised values and no improvement, so there is nothing to gain; the assignment's wording (each terminal has its own voltage source) is followed literally.
+
+## D-026 | Accepted | Commit the four dataset CSVs (~11.7 MB total), netlists and data-check results
+They are deliverables 1-3 and small enough for Git; they are regenerated bit-for-bit by `scripts/01_*.py` and `02_*.py` (seeded). Raw ngspice logs are not stored.

@@ -1,0 +1,14 @@
+{
+  "nmos_off: |Id| increases with temperature": true,
+  "nmos_off: |Id| 125C / -40C ratio": 415.29319548420483,
+  "pmos_off: |Id| increases with temperature": true,
+  "pmos_off: |Id| 125C / -40C ratio": 389.4396508614599,
+  "nmos_off: |Id| decreases as |vth0| increases": true,
+  "nmos_off: |Id| ratio (|vth0| -10% / +10%)": 45.61496479099339,
+  "pmos_off: |Id| decreases as |vth0| increases": true,
+  "pmos_off: |Id| ratio (|vth0| -10% / +10%)": 34.819957419141694,
+  "nmos_on: |Ig| decreases as toxe increases": true,
+  "nmos_on: |Ig| ratio (toxe -10% / +10%)": 29.565065148024694,
+  "pmos_on: |Ig| decreases as toxe increases": true,
+  "pmos_on: |Ig| ratio (toxe -10% / +10%)": 32.19649664207623
+}

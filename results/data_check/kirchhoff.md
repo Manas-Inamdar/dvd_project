@@ -1,0 +1,8 @@
+Kirchhoff check: |id+ig+is+ib| per sample. Relative = divided by max|I| of that sample.
+'above floor' = samples whose largest current exceeds 1e-16 A (below that the solver noise floor dominates).
+
+    case  rows  abs_residual_median_A  abs_residual_p95_A  abs_residual_max_A  rel_residual_median  rel_residual_p95  rel_residual_max  frac_max|I|<=1e-16A  rel_residual_median_above_floor  rel_residual_p95_above_floor  rel_residual_max_above_floor  worst_abs_residual_over_sum|I|
+ nmos_on 10000           2.724224e-16        4.116786e-15        5.136478e-14         2.569092e-10      2.802691e-04      1.248700e+00               0.0022                     2.549748e-10                  2.311246e-04                  1.248700e+00                    8.873988e-01
+nmos_off 10000           1.760816e-25        2.511331e-22        5.394186e-21         5.258655e-11      2.523131e-10      5.039515e-10               0.3284                     5.683304e-11                  2.615486e-10                  4.719025e-10                    2.519757e-10
+ pmos_on 10000           6.839096e-17        3.549456e-15        4.432278e-14         1.852590e-10      1.113418e-04      2.011067e+00               0.0034                     1.840310e-10                  8.730942e-05                  7.937347e-01                    1.000000e+00
+pmos_off 10000           3.299175e-17        3.185425e-16        1.799824e-15         1.115735e-02      1.640015e+00      2.726087e+00               0.2941                     1.189646e-03                  9.341717e-01                  1.877408e+00                    1.000000e+00
