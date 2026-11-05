@@ -104,13 +104,30 @@ def gate_tables():
     write("gate_reference", tabular(ref, {"runs": "int"}, "Origin of the 3600 gate SPICE reference values.", "tab:ref", colspec="lrl"))
 
 
+def circuit_tables():
+    f = ROOT / "results" / "circuit" / "circuit_results.csv"
+    if not f.exists():
+        for n in ("circuit_results", "circuit_decomposition"):
+            pending(n, "run scripts/08_circuit_spice.py and 09_circuit_ml.py")
+        return
+    c = pd.read_csv(f)[["group", "spice_median_A", "ml_median_A", "bias", "median_err", "p95_err"]]
+    c.columns = ["input vectors", "SPICE median [A]", "ML median [A]", "bias", "median err", "95th pct err"]
+    write("circuit_results", tabular(c, {"SPICE median [A]": "sci", "ML median [A]": "sci", "bias": "pct", "median err": "pct", "95th pct err": "pct"},
+                                     "Test-circuit results (8-bit parity checker): all runs and split by the number of ones in the input vector (200 corners each).", "tab:circuit", colspec="lrrrrr"))
+    d = pd.read_csv(ROOT / "results" / "circuit" / "circuit_decomposition.csv")[["comparison", "bias", "median_err", "p95_err", "mean_accuracy"]]
+    d.columns = ["comparison", "bias", "median err", "95th pct err", "mean accuracy"]
+    write("circuit_decomposition", tabular(d, {"bias": "pct", "median err": "pct", "95th pct err": "pct", "mean accuracy": "pct"},
+                                           "Where the circuit-level error comes from: ML versus circuit SPICE, and the sum of the isolated-gate SPICE leakages versus circuit SPICE (loading effect only).",
+                                           "tab:cdecomp", colspec="lrrrr"))
+
+
 def deliverables():
     R = ROOT
     items = [
         ("1", "Datasets: 4 CSV files, 10,000 rows each", [R / "data/transistor/nmos_on.csv", R / "data/transistor/pmos_off.csv"]),
         ("2", "Example netlists: transistor", [R / "netlists/single_transistor/nmos_on.cir"]),
-        ("2", "Example netlists: gates", [R / "netlists/gates"]),
-        ("2", "Example netlists: test circuit", [R / "netlists/circuit"]),
+        ("2", "Example netlists: gates", [R / "netlists/gates/NAND2_00.cir"]),
+        ("2", "Example netlists: test circuit", [R / "netlists/circuit/parity8_00000000.cir"]),
         ("3", "Data check: Kirchhoff + 3 trend plots", [R / "results/data_check/kirchhoff.csv", R / "results/data_check/trend_ig_vs_toxe.png"]),
         ("4", "Model comparison table (4 types x 4 cases, validation)", [R / "results/models/comparison_val.csv"]),
         ("5", "Chosen models: test errors, pred-vs-SPICE plots, 4 saved models", [R / "models_saved/manifest.json", R / "results/models/pred_vs_spice_nmos_on.png"]),
@@ -125,5 +142,5 @@ def deliverables():
 
 
 if __name__ == "__main__":
-    kirchhoff(); models(); gate_tables(); deliverables()
+    kirchhoff(); models(); gate_tables(); circuit_tables(); deliverables()
     print("tables written to", OUT)

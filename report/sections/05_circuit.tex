@@ -1,2 +1,23 @@
 \section{Test-circuit results (8-bit parity checker)}
-\todo{Phase 5: netlist description, test-circuit metrics (same as gate table), parity plot (log axes), comparison with gate-level accuracy.}
+\subsection{Circuit and SPICE reference}
+The assigned circuit is an 8-bit parity checker: the output is $1$ when an odd number of the eight inputs is $1$. The netlist is not provided, so it was designed (assumption, Appendix~\ref{app:assumptions}) as a balanced
+tree of seven XOR2 cells (four, two and one cell per level), each XOR2 built from four NAND2 gates,
+\[ n_1=\overline{ab},\quad n_2=\overline{a\,n_1},\quad n_3=\overline{b\,n_1},\quad y=\overline{n_2\,n_3}, \]
+i.e.\ 28 NAND2 gates and 112 transistors, with the NAND2 sizing of Section~\ref{sec:gates_method}. All eight primary inputs are ideal sources at exactly $0$ or $V_{DD}$, and the ground rail contains a $0$\,V current probe as in the gate netlists.
+
+The complete netlist was simulated for all $2^8=256$ input vectors at the same 200 corners as the gates ($51{,}200$ runs), each run at the mandated solver options and cross-checked against the tight solve (Section~4).
+All 51{,}200 runs converged with the mandated options, the cross-check agreed everywhere, the output was at the correct logic rail in every run (so the circuit implements the parity function), and no leakage was negative.
+
+\subsection{Hierarchical ML prediction}
+For every input vector the logic value at the inputs of each of the 28 gates is obtained by logic propagation; the gate model of Part B for that input combination and that corner gives the gate leakage (its SPICE-recorded node voltages are those of the isolated gate at the same corner), and the 28 gate leakages are summed. This assumes that every gate input sits exactly at $0$ or $V_{DD}$ and ignores loading between gates.
+
+\subsection{Results}
+\input{tables/circuit_results}
+\input{tables/circuit_decomposition}
+\begin{figure}[H]\centering\includegraphics[width=.72\textwidth]{circuit_parity.png}\caption{ML versus SPICE leakage of the parity checker, all 51{,}200 runs (log axes).}\label{fig:cparity}\end{figure}
+Over all 51{,}200 runs the median error is 6.4\,\%, the 95th percentile 19.1\,\% and the mean accuracy 92.5\,\%, with a small positive bias ($+1.0$\,\%). The error does not depend on the input vector
+(5.9--6.5\,\% median for 0 to 8 ones in the input), and it is close to the gate-level accuracy (median 5.5\,\%), \emph{not} markedly worse as the assignment anticipates.
+The reason is visible in the second table: for these rail-to-rail inputs the sum of the SPICE leakages of the isolated gates reproduces the SPICE leakage of the whole circuit to $10^{-4}$, so ignoring the loading between gates costs essentially nothing; the entire error is the ML error of the gate models.
+
+\paragraph{Errors do not average out.} One might expect the errors of the 28 gates to cancel in the sum. They do not, because all gates of the circuit share one corner (same $V_{DD}$, temperature and process draw) and therefore share the same systematic model error: the mean signed error of a corner varies by $9.9$\,\% (standard deviation) between corners but by only $0.2$\,\% between the 256 input vectors at one corner,
+and the per-corner circuit error is correlated with the per-corner error of the NAND2 gate (correlation coefficient $0.87$). The circuit error therefore tracks the corner-dependent accuracy of the transistor models (median error 8.3\,\% for $-40$--$0\,^\circ$C, 4.3--4.9\,\% between $0$ and $80\,^\circ$C, 6.8\,\% for $80$--$125\,^\circ$C; 7.1--7.6\,\% at the extremes of $V_{DD}$ against 5.1--5.4\,\% near nominal).

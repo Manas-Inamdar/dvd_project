@@ -37,10 +37,10 @@ Reason: currents span ~10 decades and change sign; plain MSE on raw current woul
 ## D-010 | Proposed | Four candidate model families per case: MLP, gradient boosting, polynomial/kernel ridge (or SVR), random forest/k-NN
 Reason: WhatsApp T3 (>= 4 techniques per case, finalize 1); mix of smooth (MLP, ridge) and tree-based families. Final list after pilot data.
 
-## D-011 | Proposed | Gate leakage = total current delivered by all sources at VDD (supply + inputs held high)
+## D-011 | Accepted (team assumption A1, not TA-confirmed) | Gate leakage = total current delivered by all sources at VDD (supply + inputs held high)
 Alternatives: supply current only; sum of |I| of all terminals (double counts, as in slide 15's partial equations). Reason: physically total static current; consistent between SPICE and ML. **Needs TA confirmation (Q1).**
 
-## D-012 | Proposed | Gate sizing: INV Wn=1, Wp=2; NAND2 Wn=2, Wp=2; NOR2 Wn=1, Wp=4 (x Lmin)
+## D-012 | Accepted (team assumption A2, not TA-confirmed) | Gate sizing: INV Wn=1, Wp=2; NAND2 Wn=2, Wp=2; NOR2 Wn=1, Wp=4 (x Lmin)
 Reason: slide 15 hints (INV P=2/N=1, NAND2 all 2) + NOR2 compensation; all in training range 1-8 x Lmin. **Needs TA confirmation (Q2).**
 
 ## D-013 | Proposed | Parity checker = tree of 7 XOR2 cells; each XOR2 composed only of the five allowed gates
@@ -98,10 +98,10 @@ The quantised arithmetic noise reaches ~9e-16 A, so 1e-16 would still count nois
 ## D-028 | Accepted | MLP (PyTorch, float64, tanh) is the MLP implementation; scikit-learn L-BFGS MLP kept only as round-1 reference
 Round 1 (sklearn) under-trained and weighted noise-only currents like the others. Fixes: loss weight 0.02 for currents with < 5 % resolved samples, Adam + cosine schedule + L-BFGS polish, best-validation epoch. tanh clearly beat SiLU in tests. Families compared: MLP, LightGBM, kernel ridge (RBF), polynomial ridge. MLP selected in all 4 cases.
 
-## D-029 | Accepted | Gate transistors are routed to the ON/OFF model by gate voltage (NMOS ON if Vg > VDD/2, PMOS ON if Vg < VDD/2); widths INV 1/2, NAND2 2/2, NOR2 1/4 x Lmin (= D-012, still pending TA confirmation)
+## D-029 | Accepted (team assumption A2, not TA-confirmed) | Gate transistors are routed to the ON/OFF model by gate voltage (NMOS ON if Vg > VDD/2, PMOS ON if Vg < VDD/2); widths INV 1/2, NAND2 2/2, NOR2 1/4 x Lmin (= D-012)
 
-## D-030 | Accepted | Gate leakage from ML = KCL-consistent composition, not the plain terminal-current sum
-Evidence: plain sums have median error ~100 % (ON transistors at Vds ~ 1e-7 V). Method: ON channel current = unknown J (is = -J - ig - ib), gate/body currents from the models, internal-node KCL solved by least squares, summed at the rails; reported value = mean of supply-side and ground-side sums (chosen a priori: both are estimates of the same quantity; median disagreement 0.06 %). The plain-sum baseline stays in the report (Table gate_estimators). Needs TA acknowledgement (Q1/Q6): the assignment only says "use these predicted currents to calculate the logic gate leakage".
+## D-030 | Accepted (team assumption A3, not TA-confirmed) | Gate leakage from ML = KCL-consistent composition, not the plain terminal-current sum
+Evidence: plain sums have median error ~100 % (ON transistors at Vds ~ 1e-7 V). Method: ON channel current = unknown J (is = -J - ig - ib), gate/body currents from the models, internal-node KCL solved by least squares, summed at the rails; reported value = mean of supply-side and ground-side sums (chosen a priori: both are estimates of the same quantity; median disagreement 0.06 %). The plain-sum baseline stays in the report (Table gate_estimators). Our assumption, not TA-confirmed: the assignment only says "use these predicted currents to calculate the logic gate leakage".
 
 ## D-031 | Accepted | Cross-checked SPICE reference (mandated solve vs tight solve)
 With exactly the mandated options ngspice gave invalid operating points in 59/3600 gate runs and no convergence in 66. Each run is solved with the mandated options and with an extra later `.options abstol=1e-15 reltol=1e-9 vntol=1e-12` line (gmin unchanged); the mandated result is the reference if the two agree within 1 %, else the tight one. The mandated `.options` line is kept in every netlist. Logged per run (`ref_source`). To be reused in Phase 5. TA question: confirm that a valid operating point is preferred over literal tolerances.
@@ -112,5 +112,14 @@ Makes the return current measurable: all source currents sum to zero (Kirchhoff 
 ## D-033 | Accepted | Report in LaTeX under report/, tables generated from result CSVs by scripts/12_build_report_tables.py
 So that numbers in the report can never go stale or be mistyped; each phase fills its sections (Manas, 2026-11-06).
 
-## D-034 | Proposed | Phase 3b: enlarge the transistor datasets
+## D-034 | Accepted (team assumption A4, not TA-confirmed) | Phase 3b: enlarge the transistor datasets
 Learning curves are not saturated. The assignment allows increasing the sample count ("number of samples may be increased or decreased as needed"). Plan: ~40,000 samples per case (~9 min simulation per case), retrain, re-evaluate. Deliverable 1 asks for 10,000-row CSVs; both the 10,000-row (first block) and the larger file would be delivered and the report states which one the models use.
+
+## D-035 | Accepted (team assumption) | 8-bit parity checker = balanced tree of 7 XOR2, each XOR2 = 4 NAND2 (28 NAND2, 112 transistors)
+Reason: simplest classic XOR from the allowed gates; NAND2 converged robustly in Phase 4 (AND2/OR2 did not); every gate instance maps onto one of the 18 Part-B cases. In the circuit-level ML step each NAND2 instance uses the Part-B record of its input combination at the same corner (assignment step 7: "call the corresponding gate model"). Netlist requirement `.options` line and own-source rules unchanged; MOSFET instance names start with `M_` (SPICE would read `x...` as a sub-circuit).
+
+## D-036 | Accepted | The four former TA questions are settled by OUR assumptions A1-A4 (gate-leakage definition, gate widths, KCL composition, dataset size)
+Recorded with justification in docs/PROJECT_CONTEXT.md ("Team assumptions") and report Appendix B. They are assumptions made by the team (Manas's instruction on 2026-11-06: do not investigate further, pick the simplest defensible option, do not create new open questions); they are NOT TA-confirmed facts. D-011, D-012, D-029, D-030 and D-034 are accordingly relabelled.
+
+## D-037 | Accepted | Phase 3b data: base 10,000 rows per case + 30,000 extra training-only rows (A4)
+Extra rows: `sample_case(..., batch=101)` stream (independent of batches 0..99 used for failure replacement), stored in `data/transistor_extra/`. Training set = original train split (7,000) + all 30,000 extra rows; validation and test indices are the original ones, so earlier and new results are directly comparable.

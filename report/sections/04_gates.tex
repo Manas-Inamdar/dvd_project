@@ -15,7 +15,7 @@ were therefore solved twice: with exactly the mandated options, and with one add
 The mandated result is the reference whenever it agrees with the tight solve within 1\,\%; otherwise the tight solve is used (Table~\ref{tab:ref}). The mandated \texttt{.options} line stays in every netlist.
 \input{tables/gate_reference}
 
-\subsection{From transistor currents to gate leakage}
+\subsection{From transistor currents to gate leakage}\label{sec:gates_method}
 For each run the SPICE-recorded node voltages (internal node, NAND/NOR output, gate output) give the terminal voltages $(V_d,V_g,V_s,V_b)$ of every transistor; each transistor is routed to the ON model of its
 type if its gate voltage is on the conducting side of $V_{DD}/2$, else to the OFF model; the four predicted currents follow from the chosen model.
 
