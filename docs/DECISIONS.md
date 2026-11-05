@@ -55,3 +55,16 @@ Reason: CSVs are small (10,000 rows) and are deliverables; `.gitignore` excludes
 
 ## D-016 | Accepted | Do not push to GitHub while the repo is public (resolved 2026-11-06: repo is now private)
 Reason: course material + privacy. Repo found PUBLIC on 2026-11-05; waiting for Manas to make it private or explicitly accept publishing.
+
+## D-017 | Accepted | Parameter injection by inlining the sampled model card in each netlist
+Per-sample netlists contain the full `.model nmos/pmos` cards with vth0/toxe/ndep/u0/xj replaced (regex on whole tokens, unit-tested). Self-contained netlists double as the "example netlists" deliverable.
+Alternative: one ngspice session with `altermod` (benchmark pending, task 1.3; will be adopted only if clearly faster and equally exact).
+
+## D-018 | Accepted | Pin pandas 2.3.3
+pandas 3.1.1 compiled extension (`tslib`) is blocked by Windows Smart App Control on the development PC; 2.3.3 works. Pinned in `requirements.txt`.
+
+## D-019 | Proposed | AD/AS only, no PD/PS, until TAs answer (Q3)
+Follows the course chat literally. Risk noted in PROJECT_STATUS (sidewall junction term dominates by ~100x with this model). Revisit with a quick A/B in SPICE once ngspice runs.
+
+## D-020 | Accepted | One-sample-per-netlist `.op` runs; printed `i(Vd) i(Vg) i(Vs) i(Vb)` parsed from stdout
+Simple and robust; speed to be benchmarked (task 1.3). Terminal current = -I(Vsrc) (D-006, to be verified).

@@ -1,0 +1,26 @@
+# Single source of truth for the assignment parameters (see docs/PROJECT_CONTEXT.md).
+assignment:
+  model_file: context/models/22nm_LP.pm
+  vdd_nom: 1.0            # V (assigned)
+  vdd_tol: 0.10           # +/-10 %
+  lmin: 22.0e-9           # m, = feature size
+  ldiff: 44.0e-9          # m, from TA example netlist (open question Q3)
+  w_min_mult: 1           # W = 1 x Lmin ...
+  w_max_mult: 8           # ... to 8 x Lmin
+  temp_min: -40.0         # degC
+  temp_max: 125.0
+  process_tol: 0.10       # nominal +/-10 % for vth0, toxe, ndep, u0, xj
+  process_params: [vth0, toxe, ndep, u0, xj]
+
+spice:
+  # Required by the assignment on EVERY netlist
+  options: "gmin=1e-18 abstol=1e-18 reltol=1e-6 vntol=1e-9"
+  # junction areas AD = AS = W x Ldiff (course chat clarification T1). PD/PS intentionally omitted (open question Q3).
+  add_junction_areas: true
+  # ngspice executable; overridden by the NGSPICE_EXE environment variable
+  exe: ngspice_con
+
+data:
+  n_samples: 10000
+  seed: 20261105
+  columns: [vdd, temp, w, vd, vs, vg, vb, vth0, toxe, ndep, u0, xj, id, ig, is, ib]

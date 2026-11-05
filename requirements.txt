@@ -1,0 +1,9 @@
+numpy
+pandas==2.3.3  # newer pandas (3.x) binary blocked by Windows Smart App Control on the dev PC
+scipy
+scikit-learn
+matplotlib
+pyyaml
+pytest
+joblib
+lightgbm
