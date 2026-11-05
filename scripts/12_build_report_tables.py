@@ -121,6 +121,33 @@ def circuit_tables():
                                            "tab:cdecomp", colspec="lrrrr"))
 
 
+def enlarged_tables():
+    f = ROOT / "results" / "models" / "enlarged_vs_10k.csv"
+    if not f.exists():
+        for n in ("enlarged_vs_10k", "enlarged_selection", "model_sets"):
+            pending(n, "run scripts/01b, 05b, 05c")
+        return
+    e = pd.read_csv(f)[["case", "train_rows_enlarged", "median_err_10k", "median_err_enlarged", "p95_err_10k", "p95_err_enlarged"]]
+    e.columns = ["case", "train rows (enlarged)", "median err (10k)", "median err (enlarged)", "95th pct (10k)", "95th pct (enlarged)"]
+    write("enlarged_vs_10k", tabular(e, {"train rows (enlarged)": "int", "median err (10k)": "pct", "median err (enlarged)": "pct", "95th pct (10k)": "pct", "95th pct (enlarged)": "pct"},
+                                     "Extension (assumption A4): test-set error of the MLP trained on the 7,000-row training split (headline) and refit on 37,000 rows (7,000 + 30,000 extra); same test set.",
+                                     "tab:enlarged", colspec="lrrrrr"))
+    s = pd.read_csv(ROOT / "results" / "models" / "final_selection.csv")
+    s = s[["case", "candidate", "median_err", "p95_err", "mean_abs_bias", "score"]]
+    s.columns = ["case", "candidate", "val median err", "val 95th pct", "val mean |bias|", "selection score"]
+    write("enlarged_selection", tabular(s, {"val median err": "pct", "val 95th pct": "pct", "val mean |bias|": "pct", "selection score": "g"},
+                                        "Validation-set selection between the 10,000-row model and the enlarged-training-set model (score = $\\frac{1}{2}$(median + 95th pct) + 2 mean $|$bias$|$, lower is better).",
+                                        "tab:selection", colspec="llrrrr"))
+    rows = []
+    for label, gdir, cdir in (("10,000-row models (headline)", "gates", "circuit"), ("enlarged-set selection (extension)", "gates_selected", "circuit_selected")):
+        ge = pd.read_csv(ROOT / "results" / gdir / "gate_estimators.csv").set_index("estimator").loc["leak_ml"]
+        ce = pd.read_csv(ROOT / "results" / cdir / "circuit_results.csv").iloc[0]
+        rows.append({"models": label, "level": "gates (3,600 runs)", "bias": ge["bias"], "median err": ge["median_err"], "95th pct err": ge["p95_err"], "mean accuracy": ge["mean_accuracy"]})
+        rows.append({"models": label, "level": "parity checker (51,200 runs)", "bias": ce["bias"], "median err": ce["median_err"], "95th pct err": ce["p95_err"], "mean accuracy": ce["mean_accuracy"]})
+    write("model_sets", tabular(pd.DataFrame(rows), {"bias": "pct", "median err": "pct", "95th pct err": "pct", "mean accuracy": "pct"},
+                                "Gate-level and circuit-level accuracy of the two model sets.", "tab:sets", colspec="llrrrr"))
+
+
 def deliverables():
     R = ROOT
     items = [
@@ -142,5 +169,5 @@ def deliverables():
 
 
 if __name__ == "__main__":
-    kirchhoff(); models(); gate_tables(); circuit_tables(); deliverables()
+    kirchhoff(); models(); gate_tables(); circuit_tables(); enlarged_tables(); deliverables()
     print("tables written to", OUT)

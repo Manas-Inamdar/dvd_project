@@ -1,3 +1,22 @@
 \section{Limitations and improvements}\label{sec:limits}
-\todo{Final phase. Items already known: (i) numerical noise floor of the reference currents at about $10^{-15}$\,A; (ii) PD/PS junction perimeters not set;
-(iii) gate leakage definition and gate sizing are assumptions pending TA confirmation; (iv) transistor models trained on a fixed oxide/process distribution only.}
+\subsection{What limits the accuracy}
+\begin{itemize}
+  \item \textbf{Amount of training data and model precision.} The learning curves (Section~\ref{sec:models}) were still falling by a third to a half per doubling of the data; the accuracy is mainly limited by how precisely a network of this size can represent
+        currents that span ten decades and depend exponentially on voltage, temperature and process parameters. Enlarging the training set (assumption A4, Section~ef{sec:enlarged}) lowered the transistor-level errors of three of the four models but did not improve the gate-level accuracy; the training distribution (uniform in $V_d$, $V_s$) is not where gates operate (rail-to-rail inputs), so sampling more densely at the edges of the voltage range, wider/deeper networks or ensembles are the obvious next steps.
+  \item \textbf{Corner-systematic error.} All gates of a circuit share one corner and therefore the same systematic model error, so the error of the circuit does not average out (Section~5). Reducing the corner-dependent error of the transistor models, in particular at low temperature and at the ends of the $V_{DD}$ range, would directly improve both gate and circuit accuracy.
+  \item \textbf{Weakest transistor model.} The PMOS OFF model is the least accurate; gates whose leakage flows through OFF PMOS transistors (INV with input 1, NAND2 11, NOR2 10/11) are the least accurate gate cases.
+  \item \textbf{Numerical noise floor of the reference.} The BSIM4 evaluation inside ngspice produces arithmetic noise of the order of $10^{-16}$--$10^{-15}$\,A (e.g.\ the PMOS OFF gate current is exactly zero in 84.5\,\% of the rows). Currents below $10^{-15}$\,A can neither be learned nor meaningfully scored; the error figures are computed above this floor.
+  \item \textbf{Validity of the mandated solver tolerances.} With exactly the mandated options ngspice returned invalid or non-converged operating points in 3.5\,\% of the gate runs; a cross-check solve was therefore added (Section~\ref{sec:gates_method}). The same check found no problem in the 51{,}200 circuit runs.
+  \item \textbf{Composition of the gate leakage.} The plain sum of predicted terminal currents is ill-conditioned (ON transistors carry only leakage current at $V_{ds}\approx10^{-7}$\,V); the Kirchhoff-consistent composition needs the SPICE-recorded internal-node voltages as input and the gate topology. In the circuit-level prediction the node voltages of the isolated gate at the same corner are used instead of a circuit simulation.
+  \item \textbf{Ignored loading.} The circuit-level prediction ignores loading between gates and assumes ideal logic levels. For this circuit that approximation is excellent (the sum of the isolated-gate SPICE leakages reproduces the circuit leakage to $10^{-4}$); it may be worse for circuits with higher fan-out or non-ideal logic levels.
+  \item \textbf{Assumptions not confirmed by the course staff} (Appendix~\ref{app:assumptions}): gate leakage definition, gate transistor widths, the Kirchhoff-consistent composition, the enlarged training set, and the parity-checker architecture. A different choice of widths changes the absolute leakage values but not the method.
+  \item \textbf{Scope of the models.} The transistor models are valid inside the sampled ranges only ($V_{DD}$ $\pm10\%$, $-40$ to $125\,^\circ$C, $W=1$--$8\,L_{\min}$, process parameters $\pm10\%$, gate/body voltages at $0$ or $V_{DD}$ as defined by the four cases).
+\end{itemize}
+
+\subsection{Possible improvements}
+\begin{itemize}
+  \item More and better-placed training samples: adaptive sampling concentrated where the error is largest (low temperature, extremes of $V_{DD}$, small $V_{ds}$ of ON devices) or physically motivated features such as $1/(V_{dg}-E_{gidl})$ for the band-to-band tunnelling terms.
+  \item Larger networks or ensembles of several networks, separate networks per terminal current, and a classification head for the sign of the channel current near $V_{ds}=0$.
+  \item Predicting the physical leakage mechanisms (sub-threshold, gate tunnelling, junction) separately and combining them analytically, which would also make the gate-level composition less ill-conditioned.
+  \item Simulating the circuit-level node voltages by a fast DC solver built from the ML models instead of reusing the isolated-gate voltages.
+\end{itemize}

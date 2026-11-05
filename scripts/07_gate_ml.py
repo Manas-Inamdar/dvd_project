@@ -34,9 +34,14 @@ def summarize(df: pd.DataFrame, ml="leak_ml", ref="leak_spice") -> dict:
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--models-dir", default="models_saved", help="models_saved = 10,000-row models (headline); models_selected = enlarged-set extension")
+    ap.add_argument("--out-dir", default="results/gates")
+    args = ap.parse_args()
     cfg = load_config()
-    out = ROOT / "results" / "gates"; out.mkdir(parents=True, exist_ok=True)
-    models = {c: joblib.load(ROOT / "models_saved" / f"{c}.joblib") for c in CASES}
+    out = ROOT / args.out_dir; out.mkdir(parents=True, exist_ok=True)
+    models = {c: joblib.load(ROOT / args.models_dir / f"{c}.joblib") for c in CASES}
     runs = pd.read_csv(ROOT / "data" / "gates" / "gate_spice.csv", dtype={"inputs": str})
     corners = pd.read_csv(ROOT / "data" / "gates" / "corners.csv")
     res, devices = gate_ml.predict_runs(runs, corners, models, cfg["assignment"]["lmin"])

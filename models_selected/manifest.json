@@ -1,0 +1,60 @@
+{
+  "nmos_on": {
+    "family": "mlp",
+    "params": "{'hidden': (128, 128, 128), 'epochs': 1200, 'activation': 'tanh', 'polish_rounds': 6, 'polish_iter': 300, 'threads': 2}",
+    "val_score": 0.1329382781877087,
+    "test_macro_median_err": 0.04050345990340052,
+    "test_macro_p95_err": 0.22720842901121208,
+    "test_macro_r2_signed_log": 0.9979839842370657,
+    "currents_scored": "id,ig,is,ib",
+    "n_test": 1500,
+    "chosen_training_set": "10k",
+    "val_score_10k": 0.1487268257660537,
+    "val_score_enlarged": 0.27891022729136833
+  },
+  "nmos_off": {
+    "family": "mlp",
+    "params": "{'hidden': (96, 96, 96), 'epochs': 1500, 'activation': 'tanh', 'polish_rounds': 6, 'polish_iter': 300, 'threads': 3, 'batch': 512}",
+    "val_score": 0.0825554841774343,
+    "test_macro_median_err": 0.01029274592836201,
+    "test_macro_p95_err": 0.07681503867547802,
+    "test_macro_r2_signed_log": 0.9976229706766667,
+    "currents_scored": "id,is,ib",
+    "n_test": 1500,
+    "trained_on_rows": 37000,
+    "fit_seconds": 401.3,
+    "chosen_training_set": "enlarged",
+    "val_score_10k": 0.08672035109346707,
+    "val_score_enlarged": 0.04450566143251637
+  },
+  "pmos_on": {
+    "family": "mlp",
+    "params": "{'hidden': (96, 96, 96), 'epochs': 1500, 'activation': 'tanh', 'polish_rounds': 6, 'polish_iter': 300, 'threads': 3, 'batch': 512}",
+    "val_score": 0.0709817992324942,
+    "test_macro_median_err": 0.01475898263189692,
+    "test_macro_p95_err": 0.0634006162832274,
+    "test_macro_r2_signed_log": 0.9998261202094552,
+    "currents_scored": "id,ig,is,ib",
+    "n_test": 1500,
+    "trained_on_rows": 37000,
+    "fit_seconds": 480.1,
+    "chosen_training_set": "enlarged",
+    "val_score_10k": 0.07812003784103828,
+    "val_score_enlarged": 0.04404540876277727
+  },
+  "pmos_off": {
+    "family": "mlp",
+    "params": "{'hidden': (128, 128, 128), 'epochs': 1500, 'activation': 'tanh', 'polish_rounds': 6, 'polish_iter': 300, 'threads': 3, 'batch': 512}",
+    "val_score": 0.1451848672809221,
+    "test_macro_median_err": 0.02912968751253368,
+    "test_macro_p95_err": 0.14640281327362825,
+    "test_macro_r2_signed_log": 0.9989554753596696,
+    "currents_scored": "id,is,ib",
+    "n_test": 1500,
+    "trained_on_rows": 37000,
+    "fit_seconds": 882.8,
+    "chosen_training_set": "enlarged",
+    "val_score_10k": 0.16292478119829862,
+    "val_score_enlarged": 0.0951154588375934
+  }
+}
