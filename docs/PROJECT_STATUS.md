@@ -1,9 +1,9 @@
 # PROJECT_STATUS - Living status (update after every meaningful step)
 
-Last updated: 2026-11-06 (Session 1, Phases 1-5 and 3b complete).
+Last updated: 2026-11-06 (Session 1, all phases complete).
 
 ## Current phase
-**Phase 3b (enlarged training set) COMPLETE; all pipeline phases (1-5) are done.** Remaining: Phase 6 = final report polish, clean regeneration check, Overleaf compile by Manas. Accuracy target (99 %) NOT met: headline gate level median error 5.5 % (mean accuracy 92.8 %), circuit 6.4 % (92.5 %).
+**Phase 6 (final checks) COMPLETE. The whole pipeline (Phases 1-6) is done and merged into `main`.** Remaining for Manas: compile `report/report.tex` on Overleaf (upload `report/` and `results/`), add team names on the title page, review the assumptions. The 99 % accuracy target is NOT reached (headline: gate level median error 5.5 %, mean accuracy 92.8 %; parity checker 6.4 %, 92.5 %).
 
 ## Completed
 - [x] Phase 0: repo, sanitized context, anonymized transcript (screenshots deleted after confirmation), repo private, `initial-context` pushed, **PR #1** open (docs/context) - not merged yet.
@@ -35,6 +35,9 @@ Last updated: 2026-11-06 (Session 1, Phases 1-5 and 3b complete).
 - [x] Report: LaTeX sources complete for sections 1-7 and appendices (limitations written); numbers generated from the result files.
 - [x] Tests: 91 + extra-data tests.
 
+- [x] Phase 6 (2026-11-06): **reproducibility check passed** - `scripts/01` (4 x 10,000 rows) and `scripts/06` (corners + 3,600 gate SPICE runs) were re-run from scratch with the same seeds: all datasets, the corner table, `gate_spice.csv` and all netlists are byte-identical to the committed files (only the timing field of `generation_log.json` differs). README written; LaTeX structure checked (balanced environments/braces/math in all report files; no compiler on this PC, Manas compiles on Overleaf). Not re-run in the check (long): scripts 03-05 (training; seeded but multi-threaded float arithmetic may differ in the last digits), 08 (30 min; same code path as 06), 01b/05b/05c.
+- [x] Tests: 96 passed.
+
 ## Findings from the first real simulations (important for Phases 2-3)
 1. **Speed is fine** (see 1.3).
 2. **Label noise floor in OFF cases.** With the mandated `gmin=1e-18 abstol=1e-18 reltol=1e-6 vntol=1e-9`, 30-40 % of NMOS/PMOS OFF samples differ by >1 % from a run with tight tolerances (`gmin=abstol=1e-22, reltol=1e-9`), up to thousands of times - but only where the true current is below ~1e-17 A (Vds near 0 / deep cut-off). ON cases are clean (median difference 0, max 6e-6). Source currents also show solver quantisation at ~1e-16..4e-16 A. The mandated settings stay the reference (gate/circuit references use them too), but plain relative error on per-transistor OFF currents will be dominated by these tiny currents. See DECISIONS D-021 (error metrics with a noise floor) and Q5/Q13.
@@ -61,8 +64,8 @@ Last updated: 2026-11-06 (Session 1, Phases 1-5 and 3b complete).
 - [~] Phase 3b: extra training data generation (30,000 per case, in progress), then `scripts/05b_retrain_enlarged.py`, then re-run 07 and 09.
 
 ## Remaining (next)
-- [ ] Phase 6: clean regeneration check (run scripts in order on a clean tree), final proofreading of the report numbers vs `results/`, Overleaf compile by Manas (upload `report/` and `results/`; the graphics path is `../results/...`).
-- [ ] Optional, not started: D-039 (oversample the edges of the (Vd, Vs) range in extra training rows) if more accuracy is wanted.
+- [ ] Manas: Overleaf compile; title page names; read Appendix B (our assumptions); decide whether to pursue D-039 for more accuracy.
+- [ ] Optional: D-039 (oversample the edges of the (Vd, Vs) range in extra training rows) - not started.
 
 ## Git state
 | Item | Value |
@@ -88,8 +91,8 @@ Last updated: 2026-11-06 (Session 1, Phases 1-5 and 3b complete).
 | TA example netlist on 22nm_LP | runs, prints currents - PASS |
 
 ## Immediate next steps
-1. Claude: Phase 6 (clean regeneration check, final consistency read of the report).
-2. Manas: compile `report/report.tex` on Overleaf; decide whether to pursue D-039 for higher accuracy.
+1. Manas: compile the report on Overleaf and read it through (the status page at its start lists what to check).
+2. Manas: tell Claude if more accuracy is wanted (D-039) or anything in the report should change.
 
 ## Session log
 * 2026-11-05 Session 1: setup, sanitization, understanding, documentation, plan.
@@ -99,3 +102,4 @@ Last updated: 2026-11-06 (Session 1, Phases 1-5 and 3b complete).
 * 2026-11-06 (cont.): Phases 3-4 done: 4 MLP models, 3,600 gate runs with validated reference, KCL-consistent composition, gate-level median error 5.5 %. LaTeX report started.
 * 2026-11-06 (cont.): Phase 5 done: 51,200 circuit runs, circuit-level median error 6.4 %. Assumptions A1-A4 recorded. Phase 3b started.
 * 2026-11-06 (cont.): Phase 3b done; enlarged training set improved transistor models but not gate level; D-038 headline = 10k models.
+* 2026-11-06 (cont.): Phase 6: reproducibility check passed, README, report sources finished.
