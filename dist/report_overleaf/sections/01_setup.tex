@@ -1,0 +1,13 @@
+\section{Setup}
+\begin{itemize}[nosep]
+  \item \textbf{Assigned model file:} \texttt{22nm\_LP} (PTM low-power 22\,nm, BSIM4 \texttt{level=54}, \texttt{version=4.0}).
+  \item \textbf{Nominal supply voltage:} $V_{DD}=1\,\mathrm{V}$ (sampled in $0.9$--$1.1\,\mathrm{V}$). The model-file header mentions $0.95\,\mathrm{V}$; the assignment value is used.
+  \item \textbf{Channel length:} $L=22\,\mathrm{nm}$ ($L_{\min}$); widths $W=1$--$8\times L_{\min}$ for NMOS and PMOS.
+  \item \textbf{Test circuit:} 8-bit parity checker.
+  \item \textbf{Simulator:} ngspice-47 (official 64-bit Windows build, KLU solver). Every netlist contains
+        \texttt{.options gmin=1e-18 abstol=1e-18 reltol=1e-6 vntol=1e-9}.
+  \item \textbf{Software:} Python 3.12, NumPy, pandas, scikit-learn, LightGBM, PyTorch (CPU); exact versions are printed by \texttt{scripts/00\_check\_env.py}.
+  \item \textbf{Randomness:} every random draw uses fixed seeds taken from \texttt{config/project.yaml}.
+\end{itemize}
+Junction areas $AD=AS=W\cdot L_{diff}$ with $L_{diff}=44\,\mathrm{nm}$ are added to every transistor, following the course-group clarification;
+perimeters (PD/PS) are not set (see Appendix~\ref{app:assumptions}).

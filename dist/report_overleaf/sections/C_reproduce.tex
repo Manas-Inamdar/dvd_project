@@ -1,0 +1,20 @@
+\section{Reproducing the results}
+From a clean checkout, with ngspice installed and \texttt{NGSPICE\_EXE} set:
+\begin{verbatim}
+python -m venv .venv ; .venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe scripts\00_check_env.py
+.venv\Scripts\python.exe scripts\01_generate_transistor_data.py     # 4 datasets x 10,000 rows
+.venv\Scripts\python.exe scripts\02_data_check.py                   # Kirchhoff, distributions, trend plots
+.venv\Scripts\python.exe scripts\03_train_compare_models.py         # model comparison on validation
+.venv\Scripts\python.exe scripts\04_select_and_evaluate.py          # chosen models, test metrics, plots
+.venv\Scripts\python.exe scripts\05_learning_curves.py
+.venv\Scripts\python.exe scripts\01b_generate_extra_data.py         # +30,000 training-only samples per case (assumption A4)
+.venv\Scripts\python.exe scripts\05b_retrain_enlarged.py            # refit the chosen model type on the enlarged training set
+.venv\Scripts\python.exe scripts\06_gate_spice.py                   # 200 corners, 18 gate cases, validated SPICE reference
+.venv\Scripts\python.exe scripts\07_gate_ml.py                      # ML gate leakage, tables, parity plot
+.venv\Scripts\python.exe scripts\08_circuit_spice.py                # parity checker: 256 vectors x 200 corners
+.venv\Scripts\python.exe scripts\09_circuit_ml.py                   # hierarchical ML prediction, parity plot
+.venv\Scripts\python.exe scripts\12_build_report_tables.py          # regenerate report tables
+\end{verbatim}
+Approximate run times on the development PC (14 threads): scripts 01 and 01b about 8 and 25 minutes, 03 about 7 minutes, 05b about 15 minutes, 06 about 4 minutes, 08 about 30 minutes.
+Note: scripts 06--09 depend on the saved models, so after \texttt{05b} they must be re-run (06 is independent of the models and need not be).

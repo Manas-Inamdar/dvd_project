@@ -1,0 +1,30 @@
+\begin{table}[H]
+\centering
+{\small
+\begin{tabular}{lllrrrrr}
+\toprule
+case & model & current & frac. resolved & R2 (signed-log) & median err & 95th pct err & bias \\
+\midrule
+nmos\_on & mlp & id & 98.87\% & 0.9964 & 5.59\% & 32.30\% & 0.30\% \\
+nmos\_on & mlp & ig & 82.20\% & 0.9994 & 2.79\% & 14.85\% & 0.00\% \\
+nmos\_on & mlp & is & 98.87\% & 0.9965 & 5.16\% & 33.47\% & 0.31\% \\
+nmos\_on & mlp & ib & 75.93\% & 0.9997 & 2.66\% & 10.27\% & -0.07\% \\
+nmos\_off & mlp & id & 53.33\% & 0.9918 & 1.85\% & 20.71\% & 1.02\% \\
+nmos\_off & mlp & ig & 0.00\% & 0.9946 & -- & -- & -- \\
+nmos\_off & mlp & is & 53.80\% & 0.9841 & 1.94\% & 33.09\% & 0.16\% \\
+nmos\_off & mlp & ib & 43.47\% & 0.9998 & 1.09\% & 6.74\% & -0.24\% \\
+pmos\_on & mlp & id & 98.87\% & 0.9985 & 2.63\% & 17.00\% & -0.82\% \\
+pmos\_on & mlp & ig & 85.20\% & 1 & 1.11\% & 5.23\% & -0.03\% \\
+pmos\_on & mlp & is & 98.87\% & 0.9985 & 2.59\% & 16.72\% & -0.75\% \\
+pmos\_on & mlp & ib & 75.13\% & 0.9998 & 1.32\% & 6.34\% & 0.11\% \\
+pmos\_off & mlp & id & 54.13\% & 0.9974 & 4.74\% & 29.65\% & -1.17\% \\
+pmos\_off & mlp & ig & 0.00\% & -0.1168 & -- & -- & -- \\
+pmos\_off & mlp & is & 54.60\% & 0.9971 & 4.63\% & 25.66\% & -0.40\% \\
+pmos\_off & mlp & ib & 44.33\% & 0.9993 & 3.31\% & 12.65\% & -0.15\% \\
+\bottomrule
+\end{tabular}
+}
+\caption{Chosen models on the \emph{test} set, per terminal current (errors on samples with $|I|>10^{-15}$\,A).}
+\label{tab:chosen}
+\end{table}
+

@@ -91,7 +91,7 @@ Last updated: 2026-11-06 (Session 1, all phases complete).
 | TA example netlist on 22nm_LP | runs, prints currents - PASS |
 
 ## Immediate next steps
-1. Manas: compile the report on Overleaf and read it through (the status page at its start lists what to check).
+1. Manas: upload `dist/report_overleaf.zip` to Overleaf (New Project -> Upload Project), compile `report.tex` with pdfLaTeX and read it through (the status page at its start lists what to check). The bundle is built and checked (inputs, images, cross-references) by `scripts/13_package_report.py`; no LaTeX engine runs on this PC (running a downloaded one was blocked by the permission system), so the PDF itself is NOT compiled/tested yet.
 2. Manas: tell Claude if more accuracy is wanted (D-039) or anything in the report should change.
 
 ## Session log
