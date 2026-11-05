@@ -1,6 +1,6 @@
 # PROJECT_STATUS - Living status (update after every meaningful step)
 
-Last updated: 2026-11-05, end of Session 1.
+Last updated: 2026-11-06, Session 1 continued.
 
 ## Current phase
 **Phase 0 - setup and understanding. Waiting for Manas's review.** No assignment implementation code exists yet (intentionally).
@@ -19,8 +19,9 @@ Last updated: 2026-11-05, end of Session 1.
 - [ ] Manas reviews the transcript, the understanding and the plan.
 
 ## Not done / remaining
-- [ ] **Original WhatsApp screenshots still exist locally** in `...\dvd\project\context\WA\` (never copied into the repo, git-ignored). Delete only after Manas confirms the transcript. 
-- [ ] **Repo visibility is PUBLIC.** Nothing has been pushed. Manas must make it private (or explicitly accept publishing) before the `initial-context` branch is pushed.
+- [x] Manas confirmed the transcript (2026-11-06); the 3 original WhatsApp screenshots were permanently deleted from the local context folder. Only the anonymized transcript remains.
+- [x] Repo visibility is now **PRIVATE** (verified with `gh repo view` on 2026-11-06).
+- [ ] **Push of `initial-context` + PR to `main`**: the first push attempt was blocked by the Claude Code permission classifier; waiting for Manas to allow it or push manually (`git push -u origin initial-context`).
 - [x] Local commit on `initial-context` created (NOT pushed). Push + PR to `main` pending repo privacy decision.
 - [ ] Ask TAs: Q1 (leakage definition), Q2 (gate widths), Q3 (Ldiff/PD/PS), Q5 (accuracy metric), Q6/Q7 (internal node voltages in Part C / "from both").
 - [ ] Phase 1 onward (ngspice install, spike, ...). See IMPLEMENTATION_PLAN.md.
@@ -30,7 +31,7 @@ Last updated: 2026-11-05, end of Session 1.
 |---|---|
 | Remote | `origin` = https://github.com/Manas-Inamdar/dvd_project.git |
 | Local branches | `main` (= origin/main, 1 commit "Initial commit"), `initial-context` |
-| Pushed anything? | **No** |
+| Pushed anything? | **No** (push blocked by permission prompt; see Remaining) |
 | Commit identity | repo-local: Manas Inamdar + GitHub noreply email |
 
 ## Files in the repo `context/` (all sanitized)
@@ -60,9 +61,8 @@ Not transferred: duplicate annotated PDF (byte-identical), `model.tar` (old, lac
 | Caveat: PDF *images* (slide pictures) were checked by eye on all 16 pages, not by OCR | noted |
 
 ## Immediate next steps
-1. Manas: read `context/whatsapp_messages.txt` and confirm (or correct) it; say "delete screenshots" when satisfied.
-2. Manas: make the GitHub repo private (Settings -> General -> Danger Zone -> Change visibility) or say explicitly to publish anyway.
-3. Claude: commit, push `initial-context`, open PR to `main` (only after step 2).
+1. Done: transcript confirmed, screenshots deleted, repo private.
+2. Push `initial-context` and open PR to `main` (needs Manas to approve the push permission or run it himself).
 4. Manas: send TAs the questions in PROJECT_CONTEXT section 11 marked ASK.
 5. Manas: approve (or amend) PROJECT_CONTEXT + IMPLEMENTATION_PLAN -> then Phase 1 starts.
 

@@ -7,7 +7,7 @@ Alternative: commit straight to `main`. Reason: Manas's requirement; protects a 
 
 ## D-002 | Accepted | WhatsApp screenshots are NOT stored in the repo; replaced by an anonymized transcript
 Alternatives: commit the screenshots; blur them. Reason: they contain names and phone numbers. Text keeps all technical content (`context/whatsapp_messages.txt`).
-Originals are deleted only after Manas confirms the transcript (see PROJECT_STATUS).
+Originals were deleted on 2026-11-06 after Manas confirmed the transcript.
 
 ## D-003 | Accepted | Sanitize third-party files in the repo copy, leave local originals untouched
 * PDF metadata (author name) stripped from the repo copy of the annotated slides.
@@ -53,5 +53,5 @@ Commits made with Claude's help carry a `Co-Authored-By: Claude` trailer.
 ## D-015 | Proposed | Commit the 4 dataset CSVs and small result tables; do not commit raw SPICE logs or virtualenvs
 Reason: CSVs are small (10,000 rows) and are deliverables; `.gitignore` excludes bulk/temporary files.
 
-## D-016 | Accepted | Do not push to GitHub while the repo is public
+## D-016 | Accepted | Do not push to GitHub while the repo is public (resolved 2026-11-06: repo is now private)
 Reason: course material + privacy. Repo found PUBLIC on 2026-11-05; waiting for Manas to make it private or explicitly accept publishing.
