@@ -45,7 +45,7 @@ def test_featurize_columns():
 def test_each_family_fits_and_predicts_a_toy_problem(family):
     d = _toy()
     params = {"poly_ridge": {"degree": 3, "alpha": 1e-3}, "kernel_ridge": {"gamma": 0.03, "alpha": 1e-4},
-              "mlp": {"hidden": (16, 16), "max_iter": 300}, "lightgbm": {"num_leaves": 15, "n_estimators": 200}}[family]
+              "mlp": {"hidden": (16, 16), "epochs": 60, "threads": 2}, "lightgbm": {"num_leaves": 15, "n_estimators": 200}}[family]
     tr, te = d.iloc[:1700], d.iloc[1700:]
     m = TransistorModel("nmos_on", family, params).fit(tr, te)
     p = m.predict(te)

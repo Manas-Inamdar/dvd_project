@@ -1,0 +1,53 @@
+\section{Transistor models}\label{sec:models}
+\subsection{Targets, preprocessing and metrics}
+The four terminal currents span about ten decades, change sign, and part of the data is numerical noise (Section~2). Each current $I$ is therefore
+modelled through the signed-logarithmic target
+\[
+  y=\frac{\operatorname{asinh}(I/I_0)}{\ln 10},\qquad I_0=10^{-15}\,\mathrm{A},
+\]
+which behaves like $\operatorname{sign}(I)\log_{10}(2|I|/I_0)$ for $|I|\gg I_0$, is linear (and exactly zero for $I=0$) below $I_0$, and thus treats
+sign changes, zeros and ten decades of dynamic range in one continuous variable. Targets are standardised per column. Inputs are the
+physically motivated features $\log_{10}W$, $1000/T[\mathrm{K}]$, $V_{DD}$, $V_d$, $V_s$, $V_{ds}$, $V_{gs}$, $V_{gd}$, $V_{bs}$, $V_{bd}$, $|\text{vth0}|$,
+toxe, $\log_{10}$ndep, u0, xj, standardised.
+
+Each dataset is split randomly into $70\%/15\%/15\%$ (7{,}000/1{,}500/1{,}500) training/validation/test sets with a fixed seed (stored in \texttt{data/splits}).
+All hyper-parameters and the model choice use the validation set only; the test set is evaluated once, for the chosen model.
+
+\paragraph{Metrics.} The relative error $|I_{ML}-I_{SPICE}|/|I_{SPICE}|$ is computed on the \emph{resolved} samples ($|I_{SPICE}|>I_0$), because below $I_0$ the reference
+values are noise of the BSIM4 evaluation and cannot be predicted (Section~2). Currents with fewer than 5\,\% resolved samples (the gate current of the OFF devices) are
+not scored. $R^2$ is computed on the signed-log target. The tables report the average over the scored currents; per-current values are in \texttt{results/models/}.
+
+\subsection{Model families}
+Four model types were trained for each case (as required by the course-group clarification):
+\begin{enumerate}[nosep]
+\item \textbf{MLP}: fully connected network, 3 hidden layers of 96 or 128 tanh units, float64, trained with Adam (mini-batch 256, cosine learning-rate decay from $3\cdot10^{-3}$,
+      1200 epochs) followed by full-batch L-BFGS polishing; the loss weights the pure-noise currents by 0.02, and the epoch with the best (weighted) validation loss is kept.
+\item \textbf{Gradient-boosted trees} (LightGBM): one regressor per current, 31 or 127 leaves, learning rate 0.05, early stopping on validation.
+\item \textbf{Kernel ridge regression} with RBF kernel ($\gamma\in\{0.01,0.03,0.1\}$, $\alpha\in\{10^{-5},10^{-3}\}$).
+\item \textbf{Polynomial ridge regression} (degree 3 or 4, $\alpha\in\{10^{-3},10^{-1},10\}$).
+\end{enumerate}
+A first round used scikit-learn's L-BFGS MLP; it was under-trained and weighted the noise currents like all others, which hurt the OFF cases
+(results kept in \texttt{results/models/round1\_sklearn\_mlp/}). The reported MLP is the improved PyTorch version.
+
+\subsection{Comparison and choice}
+\input{tables/model_comparison}
+The MLP is the most accurate model in all four cases, by a large margin over the other three families. Kernel ridge and polynomial regression, which assume
+a smooth global dependence, cannot follow the exponential and threshold-like behaviour (sub-threshold and tunnelling currents) over ten decades;
+gradient boosting is robust but piecewise-constant and cannot reach the precision of the MLP. The MLP was therefore selected for all four cases.
+
+\subsection{Chosen models on the test set}
+\input{tables/chosen_macro}
+\input{tables/chosen_models}
+\begin{figure}[H]\centering
+\includegraphics[width=.49\textwidth]{pred_vs_spice_nmos_on.png}\includegraphics[width=.49\textwidth]{pred_vs_spice_nmos_off.png}\\
+\includegraphics[width=.49\textwidth]{pred_vs_spice_pmos_on.png}\includegraphics[width=.49\textwidth]{pred_vs_spice_pmos_off.png}
+\caption{Predicted versus SPICE current (absolute value, log axes) on the test set for the four chosen models. The dotted lines mark the noise floor $10^{-15}$\,A.}
+\end{figure}
+The median error is $1.6$--$4.2\%$ and the 95th percentile $11$--$23\%$ (test set, resolved currents), with biases below 1.2\,\%. The NMOS OFF model is the most accurate and the
+PMOS OFF model the least; for the ON models the relative error is largest for the smallest channel currents (small $V_{ds}$ or little gate overdrive), where the current changes sign.
+
+\subsection{Learning curve}
+\input{tables/learning_curve}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{learning_curve.png}\caption{Validation error of the chosen model versus training-set size.}\end{figure}
+The error has \emph{not} saturated at 7{,}000 training samples: each doubling of the data reduces the median error by roughly a third to a half. The assignment allows the sample
+count to be increased; larger datasets are the main route to higher accuracy (Section~\ref{sec:limits}).

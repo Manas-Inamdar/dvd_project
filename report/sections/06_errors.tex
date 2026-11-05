@@ -1,0 +1,13 @@
+\section{Error analysis}
+\paragraph{Transistor level.} The largest errors are not due to the numerical noise floor: even for currents above $10^{-6}$\,A the ON models have a median error of 2--3\,\%.
+Errors grow for the smallest ON currents (small $V_{ds}$, little gate overdrive: median about 12\,\% between $10^{-14}$ and $10^{-12}$\,A) and for the PMOS OFF device overall
+(median 4--5\,\% against 1.6--1.9\,\% for NMOS OFF). The learning curves are consistent with the models being limited by the amount of training data
+(error still falling by a third to a half per doubling at 7{,}000 samples); a capacity limit was not ruled out.
+
+\paragraph{Gate level.} The errors depend only weakly on the corner (median error by temperature quarter: 6.7\,\% for $-40$ to $0\,^\circ$C, 5.3\,\% for $0$--$40\,^\circ$C, 4.6\,\% for $40$--$80\,^\circ$C, 5.8\,\% for $80$--$125\,^\circ$C;
+by $V_{DD}$: 4.6--6.7\,\%; by vth0 deviation of NMOS or PMOS: 5.1--6.9\,\%). The coldest corners are slightly worse, probably because the leakage there is smallest and the exponentially temperature-dependent sub-threshold branch spans the widest range; the extremes of $V_{DD}$ lie at the border of the sampled range, where the networks have the fewest neighbouring training points (these two explanations were not isolated by a separate experiment).
+The error of a gate is presumably dominated by the OFF device that carries most of the leakage (not verified per device); the supply-side and ground-side estimates differ by a median of 0.06\,\% of the leakage (95th percentile 2.5\,\%, maximum 24\,\%), so the Kirchhoff imbalance of the predicted currents is small compared with the error of the individual predictions.
+The aggregate bias is small ($+1.5$\,\%): the errors are mostly random, not systematic.
+
+\paragraph{Reference quality.} The mandated solver options yield invalid or non-converged SPICE operating points in 3.5\,\% of the gate runs (Section~4); without the cross-check these runs
+would have appeared as errors of up to 100\,\% of the ML prediction, although they are errors of the reference.

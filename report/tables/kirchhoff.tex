@@ -1,0 +1,18 @@
+\begin{table}[H]
+\centering
+{\small
+\begin{tabular}{lrrrrrr}
+\toprule
+case & abs median [A] & abs p95 [A] & abs max [A] & rel median & rel p95 & frac. max|I|<1e-16 A \\
+\midrule
+nmos\_on & $2.72\times10^{-16}$ & $4.12\times10^{-15}$ & $5.14\times10^{-14}$ & $2.57\times10^{-10}$ & $2.80\times10^{-4}$ & 0.22\% \\
+nmos\_off & $1.76\times10^{-25}$ & $2.51\times10^{-22}$ & $5.39\times10^{-21}$ & $5.26\times10^{-11}$ & $2.52\times10^{-10}$ & 32.84\% \\
+pmos\_on & $6.84\times10^{-17}$ & $3.55\times10^{-15}$ & $4.43\times10^{-14}$ & $1.85\times10^{-10}$ & $1.11\times10^{-4}$ & 0.34\% \\
+pmos\_off & $3.30\times10^{-17}$ & $3.19\times10^{-16}$ & $1.80\times10^{-15}$ & $1.12\times10^{-2}$ & $1.64\times10^{0}$ & 29.41\% \\
+\bottomrule
+\end{tabular}
+}
+\caption{Kirchhoff check, residual $|I_d+I_g+I_s+I_b|$ per case (absolute and relative to the largest terminal current).}
+\label{tab:kirchhoff}
+\end{table}
+

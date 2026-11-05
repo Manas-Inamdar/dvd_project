@@ -230,3 +230,7 @@ Each has a **proposed default** to keep work moving; items marked **ASK** should
 | Q15 | Is simulator `ngspice`? Which version? Not installed on this PC yet. | ngspice (>= 40) with BSIM4 `level=54`. Record version in the report. | setup needed |
 | Q16 | Course material (assignment PDFs) in a public GitHub repo. | Make repo **private** before pushing (see TEAM_WORKFLOW). | Manas to decide |
 | Q17 | Sample counts: "may be increased or decreased"; acceptable runtime? | Start with 10,000/case, use learning curves to decide on increasing. | open |
+
+### Update 2026-11-06 (end of Phases 3-4)
+* Q1 (leakage definition): implemented as D-011 (delivered at VDD-level = absorbed at 0 V-level; both measured, agree). Q2 (widths): D-012/D-029 defaults used. Q6/Q7: gate level uses SPICE-recorded node voltages as the assignment says; for the circuit level see Phase 5.
+* New open items for the TAs: (a) plain sum of predicted terminal currents is unusable for gate leakage (ON devices at Vds ~ 1e-7 V) - is the KCL-consistent composition (D-030) acceptable?; (b) mandated solver tolerances give invalid operating points in 3.5 % of gate runs - is the cross-checked reference (D-031) acceptable?; (c) is it acceptable to enlarge the transistor datasets beyond 10,000 rows (D-034)?
