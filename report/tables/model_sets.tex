@@ -1,0 +1,18 @@
+\begin{table}[H]
+\centering
+{\small
+\begin{tabular}{llrrrr}
+\toprule
+models & level & bias & median err & 95th pct err & mean accuracy \\
+\midrule
+10,000-row models (headline) & gates (3,600 runs) & 1.51\% & 5.53\% & 19.56\% & 92.79\% \\
+10,000-row models (headline) & parity checker (51,200 runs) & 0.96\% & 6.38\% & 19.12\% & 92.49\% \\
+enlarged-set selection (extension) & gates (3,600 runs) & -0.52\% & 6.56\% & 22.62\% & 91.58\% \\
+enlarged-set selection (extension) & parity checker (51,200 runs) & -0.16\% & 6.82\% & 19.63\% & 92.01\% \\
+\bottomrule
+\end{tabular}
+}
+\caption{Gate-level and circuit-level accuracy of the two model sets.}
+\label{tab:sets}
+\end{table}
+

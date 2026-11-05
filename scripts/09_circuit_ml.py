@@ -37,9 +37,14 @@ def summarize(df, ml="leak_ml", ref="leak_spice"):
 
 
 def main():
-    out = ROOT / "results" / "circuit"; out.mkdir(parents=True, exist_ok=True)
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--gate-runs", default="results/gates/gate_runs_ml.csv", help="gate-level ML predictions to compose the circuit from")
+    ap.add_argument("--out-dir", default="results/circuit")
+    args = ap.parse_args()
+    out = ROOT / args.out_dir; out.mkdir(parents=True, exist_ok=True)
     spice = pd.read_csv(ROOT / "data" / "circuit" / "circuit_spice.csv", dtype={"bits": str})
-    gates = pd.read_csv(ROOT / "results" / "gates" / "gate_runs_ml.csv", dtype={"inputs": str})
+    gates = pd.read_csv(ROOT / args.gate_runs, dtype={"inputs": str})
     lut = gates[gates.gate == "NAND2"].set_index(["case", "corner"])["leak_ml"]      # Part-B gate model output per (case, corner)
     lut_sp = gates[gates.gate == "NAND2"].set_index(["case", "corner"])["leak_spice"]
     # number of gate instances in each NAND2 case for every vector

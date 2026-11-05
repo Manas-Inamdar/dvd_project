@@ -1,0 +1,22 @@
+{
+  "nmos_on": {
+    "rows": 30000,
+    "failed_sims_dropped": 0,
+    "seconds": 227.0
+  },
+  "nmos_off": {
+    "rows": 30000,
+    "failed_sims_dropped": 0,
+    "seconds": 207.8
+  },
+  "pmos_on": {
+    "rows": 30000,
+    "failed_sims_dropped": 0,
+    "seconds": 199.5
+  },
+  "pmos_off": {
+    "rows": 30000,
+    "failed_sims_dropped": 0,
+    "seconds": 202.9
+  }
+}

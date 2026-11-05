@@ -1,10 +1,9 @@
 # PROJECT_STATUS - Living status (update after every meaningful step)
 
-Last updated: 2026-11-06 (Session 1, Phase 5 complete).
+Last updated: 2026-11-06 (Session 1, Phases 1-5 and 3b complete).
 
 ## Current phase
-**Phase 5 (8-bit parity checker) COMPLETE** with the current (10,000-row) models: circuit-level median error 6.4 %, mean accuracy 92.5 %. Phases 1-4 are merged in `main`; Phase 5 is merged by its own PR.
-Next: **Phase 3b** (assumption A4: +30,000 training-only samples per case, refit the MLPs, re-run gate and circuit ML), then Phase 6 (final report, clean regeneration).
+**Phase 3b (enlarged training set) COMPLETE; all pipeline phases (1-5) are done.** Remaining: Phase 6 = final report polish, clean regeneration check, Overleaf compile by Manas. Accuracy target (99 %) NOT met: headline gate level median error 5.5 % (mean accuracy 92.8 %), circuit 6.4 % (92.5 %).
 
 ## Completed
 - [x] Phase 0: repo, sanitized context, anonymized transcript (screenshots deleted after confirmation), repo private, `initial-context` pushed, **PR #1** open (docs/context) - not merged yet.
@@ -32,6 +31,10 @@ Next: **Phase 3b** (assumption A4: +30,000 training-only samples per case, refit
 - [x] TA questions dropped by Manas's instruction; our own assumptions A1-A4 recorded (PROJECT_CONTEXT 'Team assumptions', DECISIONS D-036). Phase 3b code written (scripts 01b, 05b), extra data generation running.
 - [x] Tests: 91 passed.
 
+- [x] Phase 3b (2026-11-06): 4 x 30,000 extra training samples (`data/transistor_extra/*.csv.gz`, 0 failures), MLPs refit on 37,000 rows (`models_enlarged/`), validation-based per-case selection (`models_selected/`). Result: transistor-level errors improved for NMOS OFF / PMOS ON / PMOS OFF, not NMOS ON; gate level NOT improved (median 6.6 % vs 5.5 %); decision D-038: headline = 10k models (the assignment's specified setting), enlarged set reported as an extension (report Section 3.5, tables `model_sets`, `enlarged_vs_10k`, `enlarged_selection`).
+- [x] Report: LaTeX sources complete for sections 1-7 and appendices (limitations written); numbers generated from the result files.
+- [x] Tests: 91 + extra-data tests.
+
 ## Findings from the first real simulations (important for Phases 2-3)
 1. **Speed is fine** (see 1.3).
 2. **Label noise floor in OFF cases.** With the mandated `gmin=1e-18 abstol=1e-18 reltol=1e-6 vntol=1e-9`, 30-40 % of NMOS/PMOS OFF samples differ by >1 % from a run with tight tolerances (`gmin=abstol=1e-22, reltol=1e-9`), up to thousands of times - but only where the true current is below ~1e-17 A (Vds near 0 / deep cut-off). ON cases are clean (median difference 0, max 6e-6). Source currents also show solver quantisation at ~1e-16..4e-16 A. The mandated settings stay the reference (gate/circuit references use them too), but plain relative error on per-transistor OFF currents will be dominated by these tiny currents. See DECISIONS D-021 (error metrics with a noise floor) and Q5/Q13.
@@ -52,12 +55,14 @@ Next: **Phase 3b** (assumption A4: +30,000 training-only samples per case, refit
 14. **Loading between gates is negligible for this circuit**: the sum of SPICE leakages of the isolated gates equals the circuit SPICE leakage to 1e-4 (rail-to-rail inputs), so the circuit-level error equals the gate-model error (not worse, contrary to the assignment's expectation).
 15. **Errors are corner-systematic and do not average out**: mean signed error per corner has std 9.9 % across corners but only 0.2 % across the 256 input vectors; per-corner circuit error correlates 0.87 with the per-corner NAND2 gate-level error. Accuracy is therefore limited by corner-dependent transistor-model accuracy (worst: -40..0 C, 8.3 % median; VDD extremes 7.1-7.6 %).
 
+16. **More training data did not improve gate-level accuracy** although it improved 3 of 4 transistor models (D-038); an under-trained first attempt (500 epochs) made the gate level worse (9.7 % median) because of a +2 % bias in NMOS ON `ig/id/is`. Gate leakage is a sum of currents, so model bias matters more than median error.
+
 ## In progress
 - [~] Phase 3b: extra training data generation (30,000 per case, in progress), then `scripts/05b_retrain_enlarged.py`, then re-run 07 and 09.
 
 ## Remaining (next)
-- [ ] Phase 3b: finish extra data, refit MLPs, re-run gate (07) and circuit (09) ML, refresh report numbers (sections 03-06 text contains numbers from the 10k models and must be updated).
-- [ ] Phase 6: report completion (limitations, final numbers), clean regeneration run, Overleaf compile by Manas.
+- [ ] Phase 6: clean regeneration check (run scripts in order on a clean tree), final proofreading of the report numbers vs `results/`, Overleaf compile by Manas (upload `report/` and `results/`; the graphics path is `../results/...`).
+- [ ] Optional, not started: D-039 (oversample the edges of the (Vd, Vs) range in extra training rows) if more accuracy is wanted.
 
 ## Git state
 | Item | Value |
@@ -83,9 +88,8 @@ Next: **Phase 3b** (assumption A4: +30,000 training-only samples per case, refit
 | TA example netlist on 22nm_LP | runs, prints currents - PASS |
 
 ## Immediate next steps
-1. Claude: finish Phase 3b (extra data -> refit -> re-run 07, 09 -> update report numbers -> PR/merge).
-2. Claude: Phase 6 (limitations section, deliverable checklist, clean-run test).
-3. Manas: Overleaf compile of `report/` (upload `report/` and `results/`; graphics path is `../results/...`).
+1. Claude: Phase 6 (clean regeneration check, final consistency read of the report).
+2. Manas: compile `report/report.tex` on Overleaf; decide whether to pursue D-039 for higher accuracy.
 
 ## Session log
 * 2026-11-05 Session 1: setup, sanitization, understanding, documentation, plan.
@@ -94,3 +98,4 @@ Next: **Phase 3b** (assumption A4: +30,000 training-only samples per case, refit
 * 2026-11-06 (cont.): Phase 2 done: 4 datasets x 10,000 rows, Kirchhoff + trend checks, noise-floor targets identified.
 * 2026-11-06 (cont.): Phases 3-4 done: 4 MLP models, 3,600 gate runs with validated reference, KCL-consistent composition, gate-level median error 5.5 %. LaTeX report started.
 * 2026-11-06 (cont.): Phase 5 done: 51,200 circuit runs, circuit-level median error 6.4 %. Assumptions A1-A4 recorded. Phase 3b started.
+* 2026-11-06 (cont.): Phase 3b done; enlarged training set improved transistor models but not gate level; D-038 headline = 10k models.
