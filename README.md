@@ -45,7 +45,7 @@ set NGSPICE_EXE=C:\path\to\ngspice_con.exe                         # ngspice 47
 .venv\Scripts\python.exe scripts\12_build_report_tables.py         # regenerate the report tables
 .venv\Scripts\python.exe -m pytest -q
 ```
-The report is compiled from `report/report.tex` (e.g. on Overleaf: upload `report/` and `results/`; graphics are found via `../results/...`).
+The report is compiled from `report/report.tex`. For Overleaf run `scripts/13_package_report.py` (after `scripts/12_build_report_tables.py`): it checks inputs/images/cross-references and builds the self-contained `dist/report_overleaf.zip` (upload it as a new project, compile `report.tex` with pdfLaTeX).
 
 ## Notes
 * Several points of the assignment are open; our assumptions (gate leakage definition, gate widths, Kirchhoff-consistent composition, dataset size, parity-checker architecture) are listed in `docs/PROJECT_CONTEXT.md` and the report appendix and are **not confirmed by the course staff**.

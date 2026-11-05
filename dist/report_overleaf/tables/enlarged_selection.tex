@@ -1,0 +1,22 @@
+\begin{table}[H]
+\centering
+{\small
+\begin{tabular}{llrrrr}
+\toprule
+case & candidate & val median err & val 95th pct & val mean |bias| & selection score \\
+\midrule
+nmos\_on & 10k & 4.30\% & 22.29\% & 0.79\% & 0.1487 \\
+nmos\_on & enlarged & 7.19\% & 24.16\% & 6.11\% & 0.2789 \\
+nmos\_off & 10k & 1.69\% & 14.82\% & 0.21\% & 0.08672 \\
+nmos\_off & enlarged & 0.99\% & 7.17\% & 0.18\% & 0.04451 \\
+pmos\_on & 10k & 2.04\% & 12.16\% & 0.36\% & 0.07812 \\
+pmos\_on & enlarged & 1.54\% & 6.91\% & 0.09\% & 0.04405 \\
+pmos\_off & 10k & 4.29\% & 24.75\% & 0.89\% & 0.1629 \\
+pmos\_off & enlarged & 2.89\% & 14.76\% & 0.34\% & 0.09512 \\
+\bottomrule
+\end{tabular}
+}
+\caption{Validation-set selection between the 10,000-row model and the enlarged-training-set model (score = $\frac{1}{2}$(median + 95th pct) + 2 mean $|$bias$|$, lower is better).}
+\label{tab:selection}
+\end{table}
+

@@ -1,0 +1,18 @@
+\begin{table}[H]
+\centering
+{\small
+\begin{tabular}{lrrrrr}
+\toprule
+case & train rows (enlarged) & median err (10k) & median err (enlarged) & 95th pct (10k) & 95th pct (enlarged) \\
+\midrule
+nmos\_on & 37000 & 4.05\% & 7.15\% & 22.72\% & 23.63\% \\
+nmos\_off & 37000 & 1.62\% & 1.03\% & 20.18\% & 7.68\% \\
+pmos\_on & 37000 & 1.91\% & 1.48\% & 11.32\% & 6.34\% \\
+pmos\_off & 37000 & 4.23\% & 2.91\% & 22.66\% & 14.64\% \\
+\bottomrule
+\end{tabular}
+}
+\caption{Extension (assumption A4): test-set error of the MLP trained on the 7,000-row training split (headline) and refit on 37,000 rows (7,000 + 30,000 extra); same test set.}
+\label{tab:enlarged}
+\end{table}
+
