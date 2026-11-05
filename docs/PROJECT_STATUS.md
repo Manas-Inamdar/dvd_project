@@ -1,56 +1,68 @@
 # PROJECT_STATUS - Living status (update after every meaningful step)
 
-Last updated: 2026-11-06 (Session 1, Phase 1 started).
+Last updated: 2026-11-06 (Session 1, Phase 1 complete).
 
 ## Current phase
-**Phase 1 - Environment and SPICE plumbing** (branch `feature/p1-spice-plumbing`). Plan + docs approved by Manas on 2026-11-06.
-**BLOCKED on running ngspice** (see Blockers). Everything that does not need the simulator is done and unit-tested.
+**Phase 1 - Environment and SPICE plumbing: technically COMPLETE** (branch `feature/p1-spice-plumbing`, PR pending review). Plan + docs approved by Manas on 2026-11-06.
+Next: Phase 2 (transistor datasets + data check). Manas has given broad permission to continue.
 
 ## Completed
-- [x] Phase 0: repo cloned, context sanitized, WhatsApp screenshots transcribed (anonymized) and permanently deleted after Manas's confirmation, repo made private by Manas (verified), `initial-context` pushed, **PR #1** open (https://github.com/Manas-Inamdar/dvd_project/pull/1) - not merged yet.
+- [x] Phase 0: repo, sanitized context, anonymized transcript (screenshots deleted after confirmation), repo private, `initial-context` pushed, **PR #1** open (docs/context) - not merged yet.
 - [x] Docs written and approved: CLAUDE.md, PROJECT_CONTEXT, IMPLEMENTATION_PLAN, DECISIONS, TEAM_WORKFLOW, this file.
-- [x] Phase 1 tasks done without the simulator:
-  - task 1.1 (partly): project venv `.venv/` (git-ignored) with numpy, scipy, pandas 2.3.3, scikit-learn, matplotlib, pyyaml, joblib, lightgbm, pytest. PyTorch NOT installed (not needed yet; sklearn MLP/LightGBM are available).
-  - ngspice 47 (64-bit, official SourceForge build `ngspice-47_64.7z`, 13.8 MB) downloaded and extracted to the session scratch folder (not installed anywhere permanent).
-  - `config/project.yaml`: all assignment parameters in one place.
-  - `src/dvdml/`: `config.py`, `modelcard.py` (read nominal values from `22nm_LP.pm`; override vth0/toxe/ndep/u0/xj in a model card), `sampling.py` (Section-4 sampler, VDD first, 4 cases, seeded), `netlist.py` (single-transistor netlist: own source per terminal, required `.options`, AD=AS=W*Ldiff, sampled model card inlined), `spice.py` (ngspice batch runner + output parser + sign convention).
-  - `scripts/00_check_env.py` (prints versions incl. simulator).
-  - `tests/`: `test_sampling.py`, `test_netlist.py`, `test_spice_smoke.py` (needs ngspice; skipped until available).
+- [x] Phase 1:
+  - 1.1 Environment: project venv `.venv/` (git-ignored): numpy, scipy, pandas 2.3.3, scikit-learn, matplotlib, pyyaml, joblib, lightgbm, pytest. **ngspice 47 (official 64-bit build, KLU) installed at `C:\Users\HP\tools\ngspice47`, user env var `NGSPICE_EXE` set** (new terminals pick it up). Windows Smart App Control did NOT block ngspice. PyTorch not installed (not needed yet).
+  - 1.2 Spike: the TA example netlist runs unmodified on `22nm_LP.pm` (include path aside).
+  - 1.3 Injection approach decided: per-sample self-contained netlists, run in a thread pool of ngspice processes. Benchmark: ~77 samples/s with 12 workers -> **10,000 samples in ~2.2 min** (serial: ~80 ms/run). The `altermod` approach is not needed.
+  - 1.4 Netlist builder + parser + sign convention **verified**: 4 smoke tests pass (NMOS ON current enters drain/leaves source, Kirchhoff, PMOS ON, OFF leakage grows with T).
+  - 1.5 Failure handling: `dataset.generate_case` returns exactly N valid rows, replacing failed sims from fresh deterministic batches (unit-tested with a fake simulator; 0 real failures in ~1100 real runs so far).
+  - Code: `config/project.yaml`, `src/dvdml/{config,modelcard,sampling,netlist,spice,dataset}.py`, `scripts/00_check_env.py`, tests.
+
+## Findings from the first real simulations (important for Phases 2-3)
+1. **Speed is fine** (see 1.3).
+2. **Label noise floor in OFF cases.** With the mandated `gmin=1e-18 abstol=1e-18 reltol=1e-6 vntol=1e-9`, 30-40 % of NMOS/PMOS OFF samples differ by >1 % from a run with tight tolerances (`gmin=abstol=1e-22, reltol=1e-9`), up to thousands of times - but only where the true current is below ~1e-17 A (Vds near 0 / deep cut-off). ON cases are clean (median difference 0, max 6e-6). Source currents also show solver quantisation at ~1e-16..4e-16 A. The mandated settings stay the reference (gate/circuit references use them too), but plain relative error on per-transistor OFF currents will be dominated by these tiny currents. See DECISIONS D-021 (error metrics with a noise floor) and Q5/Q13.
+3. **Kirchhoff check**: relative residual |sum|/max|I| median 4e-11 (NMOS OFF) to 3e-3 (PMOS OFF); large only when all currents are ~1e-18 (noise floor). Report absolute and relative residual (D-021).
+4. **toxe works**: Ig changes ~30x for toxe +/-10 % even though ngspice prints "toxe, toxp and dtox all given and toxe != toxp + dtox; dtox ignored" for non-nominal toxe. The trend plot will confirm.
+5. **PD/PS**: adding PD=PS=W+2*Ldiff changes Ib by ~10 % at the 1e-12 A level (NMOS OFF, 125 C, Vd=1 V) and nothing else - much smaller than feared; keep AD/AS only (D-019) and ask TAs.
+6. BSIM4 instance currents `@m1[ig]/[is]/[ib]` are not available in this ngspice build; only source currents are usable (consistent with the assignment's "own voltage source per terminal").
+7. Observed magnitudes (median |I|): ON: id ~1e-6..5e-7 A, ig ~1e-12, ib ~1e-14; OFF: id ~5e-15, ig ~1e-20 or exactly 0, ib ~4e-16 -> targets span ~10 decades and `ig` is sometimes exactly 0 (needs special handling in log-space models).
 
 ## In progress
-- [ ] Run ngspice: spike on the TA example (task 1.2), run the smoke tests (task 1.4 acceptance), benchmark parameter-injection approach (task 1.3).
+- [ ] Review of the Phase 1 PR by Manas.
 
 ## Remaining (next)
-- [ ] Task 1.2 spike, 1.3 benchmark (per-sample netlist in a process pool vs. one ngspice session with `altermod`), 1.5 failure handling/resampling.
-- [ ] Phase 2 onward (see IMPLEMENTATION_PLAN.md).
+- [ ] Phase 2: script `01_generate_transistor_data.py` (4 x 10,000 rows), Kirchhoff check, 3 trend plots, target-distribution inspection.
+- [ ] Phase 3+ (see IMPLEMENTATION_PLAN.md).
 - [ ] Manas: send TAs the ASK questions in PROJECT_CONTEXT section 11 (Q1, Q2, Q3, Q5, Q6, Q7).
-- [ ] Merge PR #1 (docs/context) when Manas is happy; Phase 1 gets its own PR.
+- [ ] Merge PR #1 (docs/context) and the Phase 1 PR when Manas is happy.
 
 ## Git state
 | Item | Value |
 |---|---|
 | Remote | `origin` = https://github.com/Manas-Inamdar/dvd_project.git (PRIVATE) |
-| Branches | `main` (1 commit), `initial-context` (pushed, PR #1), `feature/p1-spice-plumbing` (local, branched from `initial-context`) |
+| Branches | `main` (1 commit), `initial-context` (pushed, PR #1), `feature/p1-spice-plumbing` (branched from `initial-context`; Phase 1 PR) |
 | Commit identity | repo-local: Manas Inamdar + GitHub noreply email |
 
 ## Known bugs / blockers
-1. **ngspice cannot be run yet.** Claude Code's auto-mode permission check denied executing the downloaded `ngspice_con.exe` ("code from external"). Manas must either (a) approve running it, or (b) install ngspice himself and tell Claude the path (then set `NGSPICE_EXE`, e.g. `setx NGSPICE_EXE "C:\path\to\ngspice_con.exe"`). Possible second hurdle: **Windows Smart App Control is ON** on this PC (registry `VerifiedAndReputablePolicyState = 1`); it already blocked the compiled `pandas 3.1.1` extension (worked around by pinning pandas 2.3.3) and may block the unsigned ngspice binaries. If it does, options: run ngspice inside WSL, or build/obtain a signed build, or turn SAC off (irreversible on Windows 11 - Manas's call, not recommended).
-2. `PD`/`PS` (junction perimeters) are not set (chat only mentions AD/AS). With the model's parameters the sidewall junction terms (jswgs 1e-10 A/m x perimeter ~2e-7 m = ~2e-17 A) are ~100x larger than the area term (jss 1e-4 A/m2 x AD ~1e-15 m2 = ~1e-19 A). Body-current accuracy may depend on this; see Q3 in PROJECT_CONTEXT.
-3. Open TA questions Q1/Q2/Q6 (they affect Phase 4-5, not Phase 1-3).
+* No blockers for Phase 2. Resolved: ngspice execution (permission granted by Manas), Smart App Control (did not affect ngspice; pandas 3.x pinned away).
+* Open TA questions Q1/Q2/Q6 (affect Phase 4-5, not Phase 1-3).
+* Label noise floor in OFF cases (see Findings 2) - a metric/design issue, handled in Phase 3 (D-021).
 
 ## Tests performed and results
 | Test | Result |
 |---|---|
-| Phase 0 checks (clone, remote, duplicate PDFs, metadata strip, privacy scan of whole tree, `.gitignore` for screenshots) | all PASS (details in git history of this file) |
-| `pytest` (no simulator): sampler ranges, fixed Vg/Vb per case, reproducibility/independence; nominals read from model file; model-card override touches only the 5 requested parameters (no collateral change to xjbvs, ua, ...); netlist contains required `.options`, own source per terminal, AD/AS, sampled model card; output parser + sign convention | **12 passed** |
-| `pytest` smoke tests against real ngspice (NMOS ON conducts, Kirchhoff, PMOS ON, OFF leakage rises with T) | **4 skipped - not run yet** (no simulator access) |
-| Sign convention (D-006), convergence at gmin=1e-18 / reltol=1e-6 / vntol=1e-9, whether BSIM4 v4.0 card loads in ngspice 47 | **UNVERIFIED** until ngspice runs |
+| Phase 0 checks (clone, remote, duplicate PDFs, metadata strip, privacy scan, `.gitignore` for screenshots) | all PASS |
+| `pytest` full suite (sampler, model-card override, netlist rules, parser, dataset/failure handling, 4 real-ngspice smoke tests) | **19 passed** |
+| Real-ngspice random-sample runs (30 x 4 cases, 60 x 4 tolerance study, 2 x 300 benchmark, misc.) | 0 failures in ~1100 runs |
+| Tolerance study (mandated vs tight) | see Findings 2 |
+| Throughput benchmark | 77 samples/s (12 workers) |
+| TA example netlist on 22nm_LP | runs, prints currents - PASS |
 
 ## Immediate next steps
-1. Manas: allow Claude to run the downloaded ngspice (preferred) or install it himself and give the path.
-2. Claude: run `scripts/00_check_env.py` and the smoke tests, do the example-netlist spike, benchmark injection approaches, then finish Phase 1 and open its PR.
+1. Manas: review/merge PR #1 and the Phase 1 PR (or just say continue).
+2. Claude: Phase 2 on branch `feature/p2-datasets`.
 3. Manas: send the TA questions.
 
 ## Session log
 * 2026-11-05 Session 1: setup, sanitization, understanding, documentation, plan.
 * 2026-11-06 Session 1 (cont.): screenshots deleted, repo private, `initial-context` pushed + PR #1, Phase 1 scaffold written and unit-tested; blocked on running ngspice.
+* 2026-11-06 (cont.): ngspice 47 installed and verified, Phase 1 completed, first findings about the numerical noise floor recorded.

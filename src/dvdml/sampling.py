@@ -26,10 +26,12 @@ def sample_process(rng, nominal: dict[str, float], n: int, tol: float) -> dict[s
     return {k: v * rng.uniform(1 - tol, 1 + tol, n) for k, v in nominal.items()}
 
 
-def sample_case(case: str, n: int, seed: int, cfg: dict, nominal: dict[str, dict[str, float]]) -> pd.DataFrame:
-    """Draw n independent samples for one case. VDD is drawn first (Vd, Vs ranges depend on it)."""
+def sample_case(case: str, n: int, seed: int, cfg: dict, nominal: dict[str, dict[str, float]], batch: int = 0) -> pd.DataFrame:
+    """Draw n independent samples for one case. VDD is drawn first (Vd, Vs ranges depend on it).
+
+    `batch` selects an independent deterministic stream (used to replace failed simulations)."""
     a = cfg["assignment"]
-    rng = np.random.default_rng([seed, CASES.index(case)])
+    rng = np.random.default_rng([seed, CASES.index(case), batch])
     vdd = a["vdd_nom"] * rng.uniform(1 - a["vdd_tol"], 1 + a["vdd_tol"], n)
     vd = rng.uniform(0.0, 1.0, n) * vdd
     vs = rng.uniform(0.0, 1.0, n) * vdd
