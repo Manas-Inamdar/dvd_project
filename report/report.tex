@@ -1,0 +1,42 @@
+% ML-Driven PVT Variation Aware Leakage Estimation -- course project report
+% Sources: report/sections/*.tex ; tables are GENERATED (report/tables/*.tex) by scripts/12_build_report_tables.py -- do not edit them by hand.
+% Build: python scripts/12_build_report_tables.py ; then pdflatex report.tex (twice) from the report/ directory.
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{enumitem}
+\graphicspath{{../results/data_check/}{../results/models/}{../results/gates/}{../results/circuit/}}
+\sisetup{round-mode=figures,round-precision=3}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\usepackage{xcolor}
+
+\title{ML-Driven PVT Variation Aware Leakage Estimation\\\large Digital VLSI Design -- Course Project, Team 26}
+\author{Team 26}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\input{sections/00_status}
+\input{sections/01_setup}
+\input{sections/02_data}
+\input{sections/03_models}
+\input{sections/04_gates}
+\input{sections/05_circuit}
+\input{sections/06_errors}
+\input{sections/07_limitations}
+\appendix
+\input{sections/A_deliverables}
+\input{sections/B_assumptions}
+\input{sections/C_reproduce}
+\end{document}

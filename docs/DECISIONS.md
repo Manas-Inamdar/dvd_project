@@ -91,3 +91,26 @@ Tested 2026-11-06: identical quantised values and no improvement, so there is no
 
 ## D-026 | Accepted | Commit the four dataset CSVs (~11.7 MB total), netlists and data-check results
 They are deliverables 1-3 and small enough for Git; they are regenerated bit-for-bit by `scripts/01_*.py` and `02_*.py` (seeded). Raw ngspice logs are not stored.
+
+## D-027 | Accepted | Noise floor I_FLOOR = 1e-15 A (supersedes the 1e-16 A proposal in D-021/D-024)
+The quantised arithmetic noise reaches ~9e-16 A, so 1e-16 would still count noise as error. Metrics are computed on resolved samples (|I| > floor); currents with < 5 % resolved samples are not scored; target transform y = asinh(I/floor)/ln10.
+
+## D-028 | Accepted | MLP (PyTorch, float64, tanh) is the MLP implementation; scikit-learn L-BFGS MLP kept only as round-1 reference
+Round 1 (sklearn) under-trained and weighted noise-only currents like the others. Fixes: loss weight 0.02 for currents with < 5 % resolved samples, Adam + cosine schedule + L-BFGS polish, best-validation epoch. tanh clearly beat SiLU in tests. Families compared: MLP, LightGBM, kernel ridge (RBF), polynomial ridge. MLP selected in all 4 cases.
+
+## D-029 | Accepted | Gate transistors are routed to the ON/OFF model by gate voltage (NMOS ON if Vg > VDD/2, PMOS ON if Vg < VDD/2); widths INV 1/2, NAND2 2/2, NOR2 1/4 x Lmin (= D-012, still pending TA confirmation)
+
+## D-030 | Accepted | Gate leakage from ML = KCL-consistent composition, not the plain terminal-current sum
+Evidence: plain sums have median error ~100 % (ON transistors at Vds ~ 1e-7 V). Method: ON channel current = unknown J (is = -J - ig - ib), gate/body currents from the models, internal-node KCL solved by least squares, summed at the rails; reported value = mean of supply-side and ground-side sums (chosen a priori: both are estimates of the same quantity; median disagreement 0.06 %). The plain-sum baseline stays in the report (Table gate_estimators). Needs TA acknowledgement (Q1/Q6): the assignment only says "use these predicted currents to calculate the logic gate leakage".
+
+## D-031 | Accepted | Cross-checked SPICE reference (mandated solve vs tight solve)
+With exactly the mandated options ngspice gave invalid operating points in 59/3600 gate runs and no convergence in 66. Each run is solved with the mandated options and with an extra later `.options abstol=1e-15 reltol=1e-9 vntol=1e-12` line (gmin unchanged); the mandated result is the reference if the two agree within 1 %, else the tight one. The mandated `.options` line is kept in every netlist. Logged per run (`ref_source`). To be reused in Phase 5. TA question: confirm that a valid operating point is preferred over literal tolerances.
+
+## D-032 | Accepted | 0 V source in the ground rail of gate netlists (node `vss`, source `Vgnd`)
+Makes the return current measurable: all source currents sum to zero (Kirchhoff check per run) and gives a second measurement of the leakage. (`gnd` is a reserved alias of node 0 in SPICE, hence `vss`.)
+
+## D-033 | Accepted | Report in LaTeX under report/, tables generated from result CSVs by scripts/12_build_report_tables.py
+So that numbers in the report can never go stale or be mistyped; each phase fills its sections (Manas, 2026-11-06).
+
+## D-034 | Proposed | Phase 3b: enlarge the transistor datasets
+Learning curves are not saturated. The assignment allows increasing the sample count ("number of samples may be increased or decreased as needed"). Plan: ~40,000 samples per case (~9 min simulation per case), retrain, re-evaluate. Deliverable 1 asks for 10,000-row CSVs; both the 10,000-row (first block) and the larger file would be delivered and the report states which one the models use.

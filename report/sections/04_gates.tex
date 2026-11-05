@@ -1,0 +1,38 @@
+\section{Gate-level results}
+\subsection{Gates, corners and SPICE reference}
+The five gates INV, NAND2, NOR2, AND2 (NAND2 followed by INV) and OR2 (NOR2 followed by INV) are static CMOS circuits; AND2 and OR2 are simulated in SPICE as complete gates.
+The transistor widths are (in multiples of $L_{\min}$): INV $W_n=1,W_p=2$; NAND2 $W_n=2,W_p=2$; NOR2 $W_n=1,W_p=4$ (assumption, Appendix~\ref{app:assumptions}).
+A corner is one random draw of $V_{DD}$, temperature and process parameters; all NMOS of a gate share one process draw and all PMOS another. The same 200 corners are used for every gate,
+every input combination, and later for the test circuit, giving $18\times200=3600$ SPICE runs. Gate inputs are exactly $0$ or $V_{DD}$. A 0\,V source in the ground rail
+makes the return current measurable, so that Kirchhoff's law can be verified on every run: all source currents sum to zero within $10^{-3}$ of the largest one (checked by the test-suite
+for every gate case).
+
+\paragraph{Gate leakage definition.} The leakage is the total current delivered by all sources at $V_{DD}$ (supply plus inputs held high), which equals the current absorbed by the sources at $0$\,V.
+
+\paragraph{Validity of the SPICE reference.} With exactly the mandated solver options, ngspice returned an invalid operating point in 59 of the 3600 runs (e.g.\ the inverter output of an
+AND2 stuck at $7\times10^{-5}$\,V instead of $4\times10^{-8}$\,V, giving a leakage 200 times too large, in one case even negative) and did not converge at all in 66 more runs. All runs
+were therefore solved twice: with exactly the mandated options, and with one additional options line that sets abstol to the numerical noise floor ($10^{-15}$\,A) and tightens reltol/vntol.
+The mandated result is the reference whenever it agrees with the tight solve within 1\,\%; otherwise the tight solve is used (Table~\ref{tab:ref}). The mandated \texttt{.options} line stays in every netlist.
+\input{tables/gate_reference}
+
+\subsection{From transistor currents to gate leakage}
+For each run the SPICE-recorded node voltages (internal node, NAND/NOR output, gate output) give the terminal voltages $(V_d,V_g,V_s,V_b)$ of every transistor; each transistor is routed to the ON model of its
+type if its gate voltage is on the conducting side of $V_{DD}/2$, else to the OFF model; the four predicted currents follow from the chosen model.
+
+A plain sum of the predicted terminal currents at the nodes held at $V_{DD}$ (or, alternatively, at $0$\,V) turned out to be unusable (Table~\ref{tab:estimators}): in a leaking gate the ON
+transistors carry only the leakage current of the blocking network, at a drain-source voltage of about $10^{-7}$\,V, a regime in which the channel current is $g\,V_{ds}$ with $g\approx10^{-4}$\,S. The ON model, accurate to a few percent
+of the ON-state currents, cannot resolve a $3\times10^{-11}$\,A current there; the sums are dominated by its absolute error (median error $\approx100\%$, even negative leakage).
+The channel current of an ON transistor is not something to predict but is fixed by Kirchhoff's current law, so the following KCL-consistent composition is used:
+for every ON transistor the channel current $J$ is an unknown, its other channel terminal follows from device conservation ($I_s=-J-I_g-I_b$), the gate and body currents are taken from the ML model, and
+the node equations of the internal nodes of the gate are solved for the $J$ in the least-squares sense. The leakage is then summed at the rails; the result of the supply side and of the ground side agree closely
+(Table~\ref{tab:estimators}) and their mean is reported. Only the OFF-state predictions and the gate/body currents --- the quantities the models predict well --- determine the result.
+\input{tables/gate_estimators}
+
+\subsection{Results}
+\input{tables/gate_results}
+\input{tables/gate_by_gate}
+\begin{figure}[H]\centering\includegraphics[width=.72\textwidth]{gate_parity.png}\caption{ML versus SPICE leakage for all 3600 gate simulations (log axes).}\label{fig:gparity}\end{figure}
+Over all 3600 runs the median error is 5.5\,\%, the 95th percentile 19.6\,\%, the largest error 59\,\%, the bias $+1.5$\,\% and the mean accuracy ($1-$ mean relative error) 92.8\,\%.
+The gates ending in an inverter (AND2, OR2) are the most accurate (median 4--6\,\%), probably because their leakage is the sum of two stages whose errors partly average out (not isolated by a separate experiment). The least accurate cases are
+INV with input 1, NAND2 with inputs 11, and NOR2 with inputs 10 and 11 (median about 8\,\%): in all of them the leakage flows through OFF \emph{PMOS} transistors, and the PMOS OFF model is the least accurate of the four
+(Section~\ref{sec:models}). Cases whose leakage is set by OFF NMOS transistors (e.g.\ NAND2 with inputs 00, 01, 10) reach median errors near 5\,\%.

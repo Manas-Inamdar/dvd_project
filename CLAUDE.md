@@ -25,7 +25,7 @@ Deliverables list: `docs/PROJECT_CONTEXT.md` section 6. Assignment PDF is author
 ## Hard rules
 * **Privacy**: never commit WhatsApp screenshots/images, phone numbers, personal names from chats, credentials, absolute personal paths.
   New chat context -> anonymized text only. Repo must be private while it holds course material (check with `gh repo view --json visibility`).
-* **Git**: `main` stable; feature branches (`feature/pN-topic`); no direct pushes to main; meaningful commits; never force-push shared branches;
+* **Git**: after EACH completed phase open a PR from its feature branch and merge it into `main` (Manas's standing instruction); `main` stable; feature branches (`feature/pN-topic`); no direct pushes to main; meaningful commits; never force-push shared branches;
   commits end with `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Ask before pushing, deleting source material or other irreversible actions.
 * **No implementation until Manas approves the plan** (status: see PROJECT_STATUS.md).
 * Do not invent requirements. Unknowns go to `PROJECT_CONTEXT.md` section 11 with a proposed default; confirm "ASK" items with TAs.

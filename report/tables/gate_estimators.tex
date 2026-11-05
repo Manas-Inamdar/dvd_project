@@ -1,0 +1,19 @@
+\begin{table}[H]
+\centering
+{\small
+\begin{tabular}{lrrrr}
+\toprule
+estimator & bias & median err & 95th pct err & mean err \\
+\midrule
+plain sum of terminal currents at the VDD-level nodes & -186.2 & 0.9984 & 1460 & 292.7 \\
+plain sum of terminal currents at the 0 V-level nodes & 533.3 & 1.954 & 1761 & 539.1 \\
+KCL-consistent, supply side & 0.01505 & 0.05557 & 0.1964 & 0.07242 \\
+KCL-consistent, ground side & 0.01512 & 0.05511 & 0.1947 & 0.07222 \\
+KCL-consistent, mean of both (reported) & 0.01508 & 0.05529 & 0.1956 & 0.07214 \\
+\bottomrule
+\end{tabular}
+}
+\caption{Gate-level error of the alternative ways of turning predicted transistor currents into gate leakage (all 3600 runs; fractions, not percent).}
+\label{tab:estimators}
+\end{table}
+

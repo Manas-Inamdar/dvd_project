@@ -1,0 +1,9 @@
+\section{Assumptions and open points}\label{app:assumptions}
+The assignment leaves several points open; the choices made are listed here so that they can be corrected if the course staff decide otherwise.
+\begin{enumerate}[nosep]
+  \item \textbf{Junction geometry.} $AD=AS=W\cdot L_{diff}$, $L_{diff}=44\,\mathrm{nm}$ (course-group clarification); PD/PS not set. Adding PD$=$PS$=W+2L_{diff}$ changed only $I_b$, by about 10\,\% at the $10^{-12}$\,A level (one test point).
+  \item \textbf{Noise floor.} Currents below $10^{-15}$\,A are numerical noise of the reference simulator; accuracy is reported on currents above this floor, together with the fraction of samples below it.
+  \item \textbf{Gate leakage definition} (total current delivered by all sources at $V_{DD}$), \textbf{gate transistor sizing}, and \textbf{source of internal-node voltages in the circuit-level prediction}: see \texttt{docs/PROJECT\_CONTEXT.md}, questions Q1, Q2, Q6.
+  \item \textbf{Accuracy definition.} Relative error $|I_{ML}-I_{SPICE}|/|I_{SPICE}|$; median and 95th percentile; bias is the mean signed relative error.
+\end{enumerate}
+\todo{Update after TA answers.}
