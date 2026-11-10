@@ -30,5 +30,12 @@ Thumbs.db
 .vscode/
 .idea/
 models_candidates/
+# per-current parts duplicate the composite models_v2/<case>.joblib (their .json metrics ARE committed); study/ = ablations, metrics + logs only
+models_v2/parts/*.joblib
+study/**/*.joblib
 data/circuit/parts/
 dist/_*
+# Phase 7 ablation stages: run-level CSVs stay local (summaries, plots and results/stage_comparison*.csv are committed)
+results/study_*/gates/gate_devices_ml.csv
+results/study_*/gates/gate_runs_ml.csv
+results/study_*/circuit/circuit_runs_ml.csv

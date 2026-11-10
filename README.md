@@ -6,7 +6,9 @@ temperature variation with machine-learning models trained on single-transistor 
 * Technology: PTM **22nm_LP** (BSIM4), nominal VDD **1 V**, L = 22 nm, W = 1-8 x Lmin. Simulator: **ngspice 47**.
 * Pipeline: single-transistor data (4 cases) -> 4 ML models (MLP chosen) -> 5 gates x 18 input cases x 200 corners -> 8-bit parity checker (256 vectors x 200 corners).
 * Headline results (models trained on the specified 10,000-row datasets): gate level median error 5.5 % (mean accuracy 92.8 %), parity checker median error 6.4 % (92.5 %).
-  The 99 % accuracy target is not reached. An enlarged-training-set extension is reported next to it (it improves the transistor models but not the gate level).
+  An enlarged-training-set extension is reported next to it (it improves the transistor models but not the gate level).
+* **Phase 7 (per-current models + rail-corner data, `models_v2/`): the 99 % target is reached** - gate level mean accuracy 99.65 % (median error 0.19 %,
+  R2 0.99997), parity checker 99.73 % (median 0.19 %). See `CHANGES.md` and `docs/DECISIONS.md` D-041..D-044.
 
 ## Layout
 | Path | Content |
@@ -18,10 +20,11 @@ temperature variation with machine-learning models trained on single-transistor 
 | `scripts/` | numbered pipeline scripts, run in order (see below) |
 | `data/` | transistor datasets (10,000 rows x 4), splits, extra training data, gate and circuit SPICE references |
 | `models_saved/` | the four final transistor models (headline); `models_10k/`, `models_enlarged/`, `models_selected/` = extension |
+| `models_v2/` | Phase 7 per-current models (one MLP ensemble per terminal current; reach the 99 % target); `study/` = Phase 7 ablation metrics and logs |
 | `netlists/` | example netlists: single transistor, gates, parity checker |
 | `results/` | tables and figures (data check, models, gates, circuit) |
 | `report/` | LaTeX report (`report.tex`, sections, generated tables) |
-| `tests/` | pytest suite (96 tests; those needing ngspice skip if it is not found) |
+| `tests/` | pytest suite (102 tests; those needing ngspice skip if it is not found) |
 
 ## Run
 ```
@@ -42,6 +45,17 @@ set NGSPICE_EXE=C:\path\to\ngspice_con.exe                         # ngspice 47
 .venv\Scripts\python.exe scripts\01b_generate_extra_data.py ; scripts\05b_retrain_enlarged.py ; scripts\05c_select_final.py
 .venv\Scripts\python.exe scripts\07_gate_ml.py --models-dir models_selected --out-dir results/gates_selected
 .venv\Scripts\python.exe scripts\09_circuit_ml.py --gate-runs results/gates_selected/gate_runs_ml.csv --out-dir results/circuit_selected
+# Phase 7 (per-current models, target reached; ~2.5 h of training on a laptop GPU, resumable):
+.venv\Scripts\python.exe scripts\01c_generate_edge_data.py         # 4 x 20,000 rail-corner transistor rows (~18 min)
+.venv\Scripts\python.exe -u scripts\05d_train_per_current.py --cases nmos_on pmos_on --currents ig --params "{\"wnorm\": \"weff\", \"edge_data\": true}"
+.venv\Scripts\python.exe -u scripts\05d_train_per_current.py --cases nmos_off pmos_off --currents id is --params "{\"wnorm\": \"weff\", \"edge_data\": true}"
+.venv\Scripts\python.exe -u scripts\05d_train_per_current.py --cases nmos_on pmos_on --currents id is --params "{\"wnorm\": \"weff\", \"n_members\": 1}"
+.venv\Scripts\python.exe -u scripts\05d_train_per_current.py --currents ib
+.venv\Scripts\python.exe -u scripts\05d_train_per_current.py --cases nmos_off pmos_off --currents ig --params "{\"n_members\": 1}"
+.venv\Scripts\python.exe scripts\05e_evaluate_v2.py                # transistor test split + rail-corner errors
+.venv\Scripts\python.exe scripts\07_gate_ml.py --models-dir models_v2 --out-dir results/gates_v2
+.venv\Scripts\python.exe scripts\09_circuit_ml.py --gate-runs results/gates_v2/gate_runs_ml.csv --out-dir results/circuit_v2
+.venv\Scripts\python.exe scripts\05f_compare_stages.py             # stage-by-stage table (results/stage_comparison*.csv)
 .venv\Scripts\python.exe scripts\12_build_report_tables.py         # regenerate the report tables
 .venv\Scripts\python.exe -m pytest -q
 ```

@@ -1,0 +1,60 @@
+{
+  "case": "pmos_off",
+  "current": "ig",
+  "mode": "asinh",
+  "params": {
+    "width": 128,
+    "depth": 4,
+    "epochs": 1500,
+    "batch": 512,
+    "lr": 0.003,
+    "edge": 4.0,
+    "feat": true,
+    "wnorm": true,
+    "n_members": 1,
+    "polish_rounds": 6,
+    "polish_iter": 300,
+    "seed": 0,
+    "threads": 4,
+    "adam_fp32": true
+  },
+  "seconds": 176.1,
+  "val": {
+    "all": {
+      "n": 0
+    },
+    "vd,vs<0.1": {
+      "n": 0
+    },
+    "vd,vs>0.9": {
+      "n": 0
+    },
+    "vs<0.1,vd>0.9": {
+      "n": 0
+    },
+    "vs>0.9,vd<0.1": {
+      "n": 0
+    }
+  },
+  "holdout": {
+    "all": {
+      "n": 1,
+      "median": 1.0103067899434668,
+      "mean": 1.0103067899434668,
+      "p95": 1.0103067899434668,
+      "bias": 1.0103067899434668
+    },
+    "vd,vs<0.1": {
+      "n": 0
+    },
+    "vd,vs>0.9": {
+      "n": 0
+    },
+    "vs<0.1,vd>0.9": {
+      "n": 0
+    },
+    "vs>0.9,vd<0.1": {
+      "n": 0
+    }
+  }
+}

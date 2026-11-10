@@ -7,4 +7,5 @@ pyyaml
 pytest
 joblib
 lightgbm
+torch  # MLP training (ml.py _TorchMLP and ml_v2.py); ml_v2 models PREDICT with numpy only. A CUDA build speeds up training (optional)
 pymupdf  # optional: scripts/14_render_report_pdf.py renders the report to PDF without a LaTeX engine

@@ -1,0 +1,362 @@
+{
+  "nmos_on": {
+    "family": "mlp_per_current",
+    "currents": {
+      "id": {
+        "mode": "asinh",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 1,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 1
+      },
+      "ig": {
+        "mode": "log",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 3,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 3
+      },
+      "is": {
+        "mode": "asinh",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 1,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 1
+      },
+      "ib": {
+        "mode": "log",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 3,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 3
+      }
+    },
+    "test_macro_median_err": 0.055425731833934455,
+    "test_macro_p95_err": 0.3751390903233704,
+    "test_macro_r2_signed_log": 0.9974653565654977,
+    "currents_scored": "id,ig,is,ib",
+    "n_test": 1500
+  },
+  "nmos_off": {
+    "family": "mlp_per_current",
+    "currents": {
+      "id": {
+        "mode": "asinh",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 3,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 3
+      },
+      "ig": {
+        "mode": "asinh",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 1,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 1
+      },
+      "is": {
+        "mode": "asinh",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 3,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 3
+      },
+      "ib": {
+        "mode": "log",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 3,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 3
+      }
+    },
+    "test_macro_median_err": 0.007250198720654601,
+    "test_macro_p95_err": 0.05206135056283041,
+    "test_macro_r2_signed_log": 0.98775112664224,
+    "currents_scored": "id,is,ib",
+    "n_test": 1500
+  },
+  "pmos_on": {
+    "family": "mlp_per_current",
+    "currents": {
+      "id": {
+        "mode": "asinh",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 1,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 1
+      },
+      "ig": {
+        "mode": "log",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 3,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 3
+      },
+      "is": {
+        "mode": "asinh",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 1,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 1
+      },
+      "ib": {
+        "mode": "log",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 3,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 3
+      }
+    },
+    "test_macro_median_err": 0.020246624871205265,
+    "test_macro_p95_err": 0.11274875223917746,
+    "test_macro_r2_signed_log": 0.9992433132233328,
+    "currents_scored": "id,ig,is,ib",
+    "n_test": 1500
+  },
+  "pmos_off": {
+    "family": "mlp_per_current",
+    "currents": {
+      "id": {
+        "mode": "asinh",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 3,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 3
+      },
+      "ig": {
+        "mode": "asinh",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 1,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 1
+      },
+      "is": {
+        "mode": "asinh",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 3,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 3
+      },
+      "ib": {
+        "mode": "log",
+        "params": {
+          "width": 128,
+          "depth": 4,
+          "epochs": 1500,
+          "batch": 512,
+          "lr": 0.003,
+          "edge": 4.0,
+          "feat": true,
+          "wnorm": true,
+          "n_members": 3,
+          "polish_rounds": 6,
+          "polish_iter": 300,
+          "seed": 0,
+          "threads": 4,
+          "adam_fp32": true
+        },
+        "members": 3
+      }
+    },
+    "test_macro_median_err": 0.014452956564414221,
+    "test_macro_p95_err": 0.08230141704446793,
+    "test_macro_r2_signed_log": 0.9769298423870704,
+    "currents_scored": "id,is,ib",
+    "n_test": 1500
+  }
+}

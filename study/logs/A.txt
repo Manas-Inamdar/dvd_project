@@ -1,0 +1,3 @@
+nmos_on ig: mode=log training ...
+    ig member 0: val mse (std. units) 0.000141
+nmos_on ig: done in 4.3 min | holdout all median 0.0074 vd,vs<0.1 med 0.0066 mean 0.0085 bias -0.0005 | vs<0.1,vd>0.9 med 0.0053 mean 0.0066 bias -0.0011 | vs>0.9,vd<0.1 med 0.0055 mean 0.0090 bias -0.0013

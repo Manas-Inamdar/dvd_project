@@ -1,0 +1,30 @@
+{
+  "nmos_on": {
+    "rows": 20000,
+    "failed_sims_dropped": 0,
+    "seconds": 268.2,
+    "batch": 102,
+    "simulator": "ngspice-47 (official 64-bit build, KLU)"
+  },
+  "nmos_off": {
+    "rows": 20000,
+    "failed_sims_dropped": 0,
+    "seconds": 265.0,
+    "batch": 102,
+    "simulator": "ngspice-47 (official 64-bit build, KLU)"
+  },
+  "pmos_on": {
+    "rows": 20000,
+    "failed_sims_dropped": 0,
+    "seconds": 260.4,
+    "batch": 102,
+    "simulator": "ngspice-47 (official 64-bit build, KLU)"
+  },
+  "pmos_off": {
+    "rows": 20000,
+    "failed_sims_dropped": 0,
+    "seconds": 259.7,
+    "batch": 102,
+    "simulator": "ngspice-47 (official 64-bit build, KLU)"
+  }
+}
