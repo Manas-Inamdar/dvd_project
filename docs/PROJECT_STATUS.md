@@ -39,7 +39,7 @@ Last updated: 2026-11-10 (Phase 7: accuracy push, target reached - see below and
 - [x] Tests: 96 passed.
 
 - [x] Phase 7 (2026-11-10, second dev laptop, see CHANGES.md and DECISIONS D-041..D-044): **99 % target reached.** Per-current MLP ensembles (`src/dvdml/ml_v2.py`, `scripts/05d`, `05e`), effective-width normalisation, 4 x 20,000 rail-corner transistor training rows (`scripts/01c`, `data/transistor_edge/`). Gate level mean accuracy **99.65 %** (median 0.19 %, P95 1.2 %, R2 0.99997), parity checker **99.73 %** (median 0.19 %, P95 0.79 %). Models `models_v2/`, results `results/{models_v2,gates_v2,circuit_v2}`, stage comparison `results/stage_comparison*.csv` (`scripts/05f`), ablations `study/` + `results/study_*`. ngspice 47 installed on the second laptop (env var `NGSPICE_EXE`); it reproduces the stored datasets bit-for-bit. Low-load training mode because of hardware resets (D-042).
-- [x] Tests: 101 passed with ngspice (1 LightGBM test fails only where lightgbm is not installed).
+- [x] Tests: all 102 pass with ngspice and lightgbm installed.
 - [ ] Open (team): approve D-044 (models_v2 as headline), update the LaTeX report (sections 3-6, tables via scripts/12) with the Phase 7 results.
 
 ## Findings from the first real simulations (important for Phases 2-3)

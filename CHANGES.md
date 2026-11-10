@@ -57,5 +57,5 @@ See `README.md` → Run → "Phase 7". You need ngspice 47 (`NGSPICE_EXE`) for `
 ## Caveats (stated openly)
 - On the **uniform** transistor test split, OFF `id`/`is` of the final models are about as good as, or slightly worse than, the intermediate stages, because capacity moved to the rail corners where gates operate. ON `id`/`is` get a 1-member model and are weaker than Phase 3; leakage does not use them. OFF `ig` is below the 1e-15 A noise floor in every row and is not scored.
 - The diagnosis (which operating points matter, the measured width ratio) looked at gate results, as in D-038. No gate or circuit value entered training.
-- Tests: 101 passed with ngspice. 1 LightGBM test fails only on machines where lightgbm is not installed.
+- Tests: all 102 pass with ngspice and lightgbm installed (the LightGBM test needs `lightgbm` from `requirements.txt`).
 - Not done yet: the LaTeX report (`report/`) still shows the Phase 3 numbers. Updating it needs the team's decision on D-044.
