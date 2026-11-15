@@ -1,13 +1,13 @@
 # Model comparison (Part A, step 2: "train and compare different ML models for each case")
 
-This study chose the model family that the Phase 7 per-current models (`src/dvdml/ml_v2.py`) build on. It was run on branch `main`
-(`scripts/03_train_compare_models.py`, `scripts/04_select_and_evaluate.py`, `src/dvdml/ml.py`). This branch keeps only the result.
-The full tables are on `main` in `results/models/comparison_val.csv`, `comparison_val_by_current.csv` and `all_trials_val.csv` (64 trials).
+This study chose the model family that the final per-current models (`src/dvdml/ml_v2.py`) build on. It is produced by
+`scripts/04_compare_models.py` (model code in `src/dvdml/ml.py`) on the split written by `scripts/03_make_splits.py`.
+The full tables are in this folder: `comparison_val.csv`, `comparison_val_by_current.csv` and `all_trials_val.csv` (64 trials).
 
 ## Setup
 
-- **Data:** the specified 10,000-row dataset per case, split 70/15/15 with seed 20261105. The split is the same one this branch
-  uses (`data/splits/<case>.npz`).
+- **Data:** the specified 10,000-row dataset per case, split 70/15/15 with seed 20261105. The split is the same one the final models use
+  (`data/splits/<case>.npz`).
 - **Inputs:** 15 physics features (`ml.featurize`).
 - **Target:** the signed log of each current, `asinh(I / 1e-15 A) / ln 10`. One multi-output model predicts id, ig, is and ib.
 - **Selection:** on the VALIDATION set only. Score = 0.5 * (median + P95 relative error), lower is better, macro-averaged over
@@ -48,9 +48,9 @@ The full tables are on `main` in `results/models/comparison_val.csv`, `compariso
   polynomial ridge models, whose P95 errors are in the hundreds to tens of thousands of percent.
 - LightGBM sometimes has a similar R² (NMOS ON 0.9976). R² on the log scale hides relative errors of 10-60 %, which is why the
   score uses relative-error percentiles.
-- Test-set results of the winning multi-output MLP (`main`, `results/models/test_results.csv`), median / P95 error:
+- Test-set results of the winning multi-output MLP (baseline, before the per-current models), median / P95 error:
   NMOS ON 4.1 / 22.7 %, NMOS OFF 1.6 / 20.2 %, PMOS ON 1.9 / 11.3 %, PMOS OFF 4.2 / 22.7 %.
   Gate-level mean accuracy was 92.8 % and parity checker 92.5 %.
-- **Phase 7 (this branch)** keeps the winning family (tanh MLP, Adam + L-BFGS polish) and changes how it is used: one MLP
+- **The final models** keep the winning family (tanh MLP, Adam + L-BFGS polish) and change how it is used: one MLP
   ensemble per current, physics features, width-normalised targets and rail-corner training data. See `README.md` and
   `results/models/test_results.csv` for the resulting models.
