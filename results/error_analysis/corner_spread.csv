@@ -1,0 +1,3 @@
+level,std_of_corner_mean_err,max_abs_corner_mean_err,std_within_corner
+gates (per gate case),0.006141179680448749,0.05678868281309125,
+parity checker,0.003302055635511623,0.0137402060008674,0.0001140168107505907
