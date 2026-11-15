@@ -96,10 +96,12 @@ uv run python scripts/01c_generate_edge_data.py        # 4 x 20,000 rail-corner 
 uv run python scripts/02_data_check.py                 # Kirchhoff check, distributions, trend plots                [SPICE]
 uv run python scripts/03_make_splits.py                # fixed-seed 70/15/15 split
 uv run python scripts/04_compare_models.py             # 4 model types x 4 cases on the validation set
-# final per-current models: five training runs (resumable; existing models/parts/*.joblib are skipped)
+# final per-current models: seven training runs (resumable; existing models/parts/*.joblib are skipped)
 uv run python -u scripts/05d_train_per_current.py --cases nmos_on pmos_on   --currents ig    --params '{"wnorm": "weff", "edge_data": true}'
 uv run python -u scripts/05d_train_per_current.py --cases nmos_off pmos_off --currents id is --params '{"wnorm": "weff", "edge_data": true}'
-uv run python -u scripts/05d_train_per_current.py --cases nmos_on pmos_on   --currents id is --params '{"wnorm": "weff", "n_members": 1}'
+uv run python -u scripts/05d_train_per_current.py --cases nmos_on           --currents id    --params '{"wnorm": "weff", "edge_data": true}'
+uv run python -u scripts/05d_train_per_current.py --cases nmos_on pmos_on   --currents is    --params '{"wnorm": "weff", "n_members": 1}'
+uv run python -u scripts/05d_train_per_current.py --cases pmos_on           --currents id    --params '{"wnorm": "weff", "n_members": 1}'
 uv run python -u scripts/05d_train_per_current.py --currents ib
 uv run python -u scripts/05d_train_per_current.py --cases nmos_off pmos_off --currents ig    --params '{"n_members": 1}'
 uv run python scripts/05e_evaluate_v2.py               # test-set metrics and predicted-vs-SPICE plots
