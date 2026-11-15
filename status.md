@@ -1,351 +1,414 @@
-# status.md: repo walkthrough (local notes, NOT tracked by git)
+# status.md: repo walkthrough (branch `clean`)
 
-Written 2026-11-12 from a full read of `main` (f9cdaba) and `origin/feature/phase7-per-current-models` (1073579),
-checked against the assignment PDF `context/DVD_ML_PROJECT.pdf`. Nothing was re-run for this note: ngspice and torch
-are not installed on this Mac. All numbers below come from the CSVs committed in the repo.
+Updated 2026-11-15. It covers branch **`clean`** (`origin/clean`), the cleaned Phase 7 pipeline. `main` and
+`feature/phase7-per-current-models` appear only where they explain where something came from.
+Everything under "verified" was re-run on macOS in this session; the other numbers come from the committed CSVs.
+The assignment is `DVD_ML_PROJECT.pdf` (kept on `main` under `context/`).
 
 ---
 
 ## 0. TL;DR
 
-* **The task:** predict CMOS leakage under PVT variation. Use ML models trained only on *single-transistor* SPICE data,
-  then build up to 5 gates (18 input cases) and an 8-bit parity checker. Compare against full SPICE. Target: "up to 99 % mean accuracy".
-* **`main`** holds the whole pipeline, Phases 1-6, and it is complete. It produced the datasets, 4 MLP transistor models,
-  3,600 gate SPICE runs, 51,200 parity-checker SPICE runs, a LaTeX report and a rendered PDF.
-  Headline accuracy: **gate 92.8 %, circuit 92.5 %**. The 99 % target is **not** met on `main`.
-* **`feature/phase7-per-current-models`** (2 commits by a teammate, 2026-11-10, **not merged**) adds "Phase 7":
-  one model per terminal current, effective-width (Weff) normalisation and extra training data at the voltage rails.
-  Claimed result: **gate 99.65 %, circuit 99.73 %**. It is purely additive (new files plus doc edits). The report still shows the Phase 3 numbers.
-* **Decision the team still owes:** D-044, i.e. whether `models_v2` becomes the headline. After that, the report has to be updated.
-  `main` has not moved since the branch was cut, so a merge would be a clean fast-forward.
+* **The task:** predict CMOS leakage under PVT variation.
+  * Train ML models only on *single-transistor* SPICE data.
+  * Use them to predict 5 logic gates (18 input cases) and an 8-bit parity checker.
+  * Compare with full SPICE. Target: "up to 99 % mean accuracy".
+* **`clean` contains exactly the Phase 7 pipeline:**
+  * data generation;
+  * 4 transistor models, each made of one small MLP ensemble per terminal current (16 networks);
+  * gate-level and circuit-level ML vs SPICE.
+* **Results:**
+  * Gate level: **99.65 %** mean accuracy (median error 0.19 %).
+  * Parity checker: **99.73 %** (median 0.19 %).
+  * The target is reached.
+* **How `clean` was made:** it was cut from `feature/phase7-per-current-models` (commit 1073579). Unused material was deleted, the
+  folders were reorganised (src / models / data / results), and a uv environment was added. Only paths changed in the code. Every
+  model and result file is byte-identical to the Phase 7 original.
+* **Still open:**
+  * NMOS-ON id/is are worse than on `main` at transistor level (deliverable 5).
+  * Some Phase 7 design choices were made while looking at gate results.
+  * The report on `main` still shows the old 92.8 %.
+  * Details in §11.
 
 ---
 
 ## 1. The assignment in one screen (from the PDF)
 
-| Part | What | Our setting |
+| Part | What the PDF asks | Our setting |
 |---|---|---|
-| A1 data | 4 cases (NMOS/PMOS x ON/OFF), 10,000 random samples each. Draw VDD first, then Vd, Vs ~ U(0, VDD), W ~ U(1, 8)·Lmin, T ~ U(-40, 125) °C, vth0/toxe/ndep/u0/xj ~ nominal ±10 %. Vg and Vb are fixed by the case | 22nm_LP PTM BSIM4, VDD = 1 V, L = 22 nm |
-| A2 models | 70/15/15 split with a fixed seed. Compare ≥ 4 ML types per case, pick on validation, report on test | MLP won all 4 cases |
-| B gates | INV, NAND2, NOR2, AND2, OR2 → 18 input cases × 200 PVT corners. ML uses the SPICE-recorded internal and output node voltages → terminal voltages → transistor models → gate leakage | 3,600 SPICE runs |
-| C circuit | Full-netlist SPICE for every input vector × the same 200 corners. ML = sum of the gate-model leakages (no loading) | 8-bit parity, 256 × 200 = 51,200 runs |
-| Netlists | Every netlist has `.options gmin=1e-18 abstol=1e-18 reltol=1e-6 vntol=1e-9`; in single-FET netlists each terminal gets its own voltage source | + AD = AS = W·Ldiff (from the course chat) |
-| Deliverables | 10 items: CSVs, example netlists, data check, 4×4 comparison table, chosen models + plots, gate table, gate parity plot, circuit table + plot, code, report | checklist in `report/tables/deliverables.tex` |
-
-Things the PDF leaves open, which the team settled as **its own assumptions (not TA-confirmed)**:
-* **A1:** the definition of gate leakage.
-* **A2:** transistor widths inside gates.
-* **A3:** KCL-consistent composition.
-* **A4:** enlarged training set.
-* Also: the parity-checker architecture.
-
-See §6.
+| A1 data | 4 cases (NMOS/PMOS x ON/OFF), 10,000 random samples each. Draw VDD first; Vd, Vs ~ U(0, VDD); W ~ U(1, 8)·Lmin; T ~ U(-40, 125) °C; vth0/toxe/ndep/u0/xj ~ nominal ±10 %. Vg and Vb are fixed by the case. "The number of samples may be increased" | PTM 22nm_LP (BSIM4), VDD = 1 V, L = 22 nm (team 26 row of the TA allocation sheet) |
+| A2 models | Random 70/15/15 split with a fixed seed. "Train and compare different ML models for each case", pick on validation, report on test | Comparison: `results/model_comparison.md` (MLP won). Final: per-current MLP ensembles |
+| B gates | INV, NAND2, NOR2, AND2, OR2: 18 input cases x 200 PVT corners. ML uses the SPICE node voltages → terminal voltages → the 4 transistor models → gate leakage | 3,600 SPICE runs |
+| C circuit | Full SPICE netlist for every input vector x the same 200 corners. ML = sum of gate leakages (no loading) | 8-bit parity checker, 256 x 200 = 51,200 runs |
+| Netlists | `.options gmin=1e-18 abstol=1e-18 reltol=1e-6 vntol=1e-9` in every netlist; single-FET netlists give every terminal its own source | + AD = AS = W·Ldiff (course chat) |
+| Deliverables | 10 items: CSVs, example netlists, data check, model comparison, chosen models + plots, gate table + parity plot, circuit table + plot, code, report | Items 1-9 are on `clean` (§3). The report (10) is only on `main` and is outdated |
 
 ---
 
-## 2. Branches and history
+## 2. Branches
 
 ```
-1aa4ebc initial ─ … ─ PR#1..#8 (phase branches, all merged + deleted, D-040) ─ 8f6a72d ─ f9cdaba  ← main, origin/main
-                                                                                       └─ 7f0c90a Phase 7 ─ 1073579 "Minor Fix"  ← origin/feature/phase7-per-current-models
+main ─ … ─ f9cdaba (Phases 1-6, report)                                    ← origin/main
+             └─ 7f0c90a Phase 7 ─ 1073579 Minor Fix                          ← origin/feature/phase7-per-current-models
+                                     └─ c19e61a cleanup ─ 884a37a status     ← clean, origin/clean
 ```
-* `main`: 23 commits. Up to PR #8 the work went through per-phase feature branches and PRs. After D-040 (2026-11-06) the rule became "single branch `main`, no PRs".
-* The Phase 7 branch therefore **contradicts D-040 / CLAUDE.md**. That is fine as a review vehicle, but it needs a merge decision.
-  "Minor Fix" only touches one line each in CHANGES.md and PROJECT_STATUS.md.
-* There is **no local tracking branch** for Phase 7. Use `git switch -c phase7 origin/feature/phase7-per-current-models` to inspect it.
-* Gotcha: on that branch, `docs/DECISIONS.md` was converted from **CRLF to LF**, so `git diff` shows the whole file as changed.
-  The real change is only D-039 (relabelled) plus D-041 to D-044 (`git diff -w` shows it).
+* **`clean`** (this file): only what the Phase 7 pipeline uses.
+* **`main`** has:
+  * the original pipeline: one multi-output MLP per case, 92.8 % gate / 92.5 % circuit;
+  * the 4-family model comparison (scripts 03/04);
+  * learning curves;
+  * the 37k-row refit;
+  * the LaTeX report and PDF;
+  * `docs/` (decision log D-001..D-040, assumptions);
+  * `context/` (assignment PDF, TA slides, PTM cards, chat).
+* **`feature/phase7-per-current-models`** = `main` + Phase 7. It also holds the Phase 7 ablation study (`study/`,
+  `results/study_*`, `scripts/05f`) and the decisions D-041..D-044.
+* **Team rule:** CLAUDE.md on `main` (D-040) says "one branch only: `main`". `clean` and the Phase 7 branch go against it, so the team must
+  decide what gets merged.
 
 ---
 
-## 3. Repo map (main)
+## 3. Repo map (`clean`)
 
 | Path | What it is |
 |---|---|
-| `CLAUDE.md`, `docs/` | Project memory: PROJECT_CONTEXT (requirements + Q1-Q17 + assumptions A1-A4), IMPLEMENTATION_PLAN, PROJECT_STATUS, DECISIONS (D-001..D-040), TEAM_WORKFLOW |
-| `context/` | Frozen inputs: assignment PDF, annotated TA slides, 11 PTM model cards (only `22nm_LP.pm` is used), TA example netlist, anonymised chat |
-| `config/project.yaml` | All assignment numbers: VDD, ranges, Lmin = 22 nm, Ldiff = 44 nm, the SPICE options, seed 20261105, split 70/15/15, I_FLOOR 1e-15 |
-| `src/dvdml/` | Library (≈1,000 lines), §5 |
-| `scripts/` | Numbered pipeline `00`..`09`, the `01b/05b/05c` extension, and `12-14` for the report |
-| `data/transistor/` | **Deliverable 1**: 4 × 10,000-row CSVs + generation log |
-| `data/transistor_extra/` | 4 × 30,000 extra training rows (gz), Phase 3b |
-| `data/splits/` | Fixed train/val/test indices (npz) |
-| `data/gates/` | `corners.csv` (200 PVT corners) and `gate_spice.csv` (3,600 runs) |
+| `22nm_LP.pm` | The assigned SPICE model card (NMOS + PMOS BSIM4, level 54). Path set in `config/project.yaml` (`assignment.model_file`) |
+| `config/project.yaml` | Every assignment number: VDD 1 V ±10 %, Lmin 22 nm, Ldiff 44 nm, W 1-8·Lmin, T range, process ±10 %, SPICE options, seed 20261105, split 70/15/15, I_FLOOR 1e-15 A. ngspice exe `ngspice_con` (Windows name; override with `NGSPICE_EXE`) |
+| `pyproject.toml`, `uv.lock`, `.python-version` | uv project: Python 3.12, locked package versions (torch 2.15, pandas 2.3.3 pinned, numpy 2.5, scikit-learn 1.9, lightgbm 4.7) |
+| `src/dvdml/` | Library, 16 modules, ~1,200 lines (§8) |
+| `scripts/` | `00`, `01`, `01b`, `01c`, `02`, `05d`, `05e`, `06`-`09` (~930 lines). Original numbering kept so they match `main` |
+| `data/transistor/` | **Deliverable 1**: 4 x 10,000-row CSVs (`vdd, temp, w, vd, vs, vg, vb, vth0, toxe, ndep, u0, xj, id, ig, is, ib`) + generation log |
+| `data/transistor_extra/` | 4 x 30,000 extra uniform rows (gz). Rows 0-24,999 train, 25,000-29,999 holdout |
+| `data/transistor_edge/` | 4 x 20,000 rail-corner rows (gz). 16k train, 2k join validation, 2k "edge holdout" |
+| `data/splits/` | Fixed train/val/test row indices of the 10k datasets (npz; created by `main`'s script 03) |
+| `data/gates/` | `corners.csv` (200 PVT corners), `gate_spice.csv` (3,600 cross-checked runs) |
 | `data/circuit/` | `circuit_spice.csv` (51,200 runs) |
-| `models_saved/` | **Deliverable 5**: the 4 headline models (= `models_10k/`) |
-| `models_enlarged/`, `models_selected/` | Phase 3b extension |
-| `netlists/` | **Deliverable 2**: example single-FET, gate and circuit netlists |
-| `results/` | data_check, models, gates, circuit (+ `_selected` variants): CSV tables + PNG plots |
-| `report/` | LaTeX sources. `report/tables/*.tex` are **generated** by script 12 |
-| `dist/` | `report.pdf` (rendered with PyMuPDF, not pdfLaTeX) and the Overleaf zip/bundle |
-| `tests/` | 38 test functions (96 cases after parametrisation). ngspice tests auto-skip |
+| `data/netlists/` | **Deliverable 2**: example single-FET (4), gate (18) and parity-checker (4) netlists |
+| `models/` | **Deliverable 5**: `<case>.joblib` (4 `CompositeTransistorModel`s), `manifest.json` (settings + test metrics per current), `params.json`, `parts/*.json` (validation/holdout errors per current), `logs/` |
+| `results/data_check/` | **Deliverable 3**: Kirchhoff check, current distributions, 3 trend plots |
+| `results/model_comparison.md` | **Deliverable 4**: 4 families x 4 cases validation table (from `main`) and why the MLP was chosen |
+| `results/models/` | Transistor test metrics (`test_results.csv`), rail-corner errors (test / holdout / edge holdout), predicted-vs-SPICE plots |
+| `results/gates/` | **Deliverables 6-7**: `gate_results.csv` (18 cases), `gate_by_gate.csv`, `gate_estimators.csv` (naive vs KCL), per-run/per-device CSVs, parity + error-vs-corner plots |
+| `results/circuit/` | **Deliverable 8**: `circuit_results.csv` (overall + by number of 1s), loading-effect decomposition, parity + error-vs-corner plots |
+| `tests/` | pytest, 101 tests (ngspice tests run if `NGSPICE_EXE` is found, otherwise skip) |
+| `status.md` | This file |
+
+Size: data 43 MB, models 15 MB, results 17 MB. Removed compared with the Phase 7 branch: `context/`, `docs/`, `report/`, `dist/`,
+`CLAUDE.md`, `CHANGES.md`, `requirements.txt`, `study/`, `models_saved/10k/enlarged/selected`, their results, scripts 03-05c, 05f, 12-14 and `latex.py`.
 
 ---
 
-## 4. End-to-end flow
+## 4. Setup and run
 
+```bash
+# once
+brew install ngspice                      # ngspice 47 (Linux: package manager; Windows: official build, ngspice_con.exe)
+uv sync                                   # .venv with Python 3.12 + locked packages
+export NGSPICE_EXE=ngspice
+uv run python scripts/00_check_env.py
+uv run pytest -q --deselect "tests/test_ml.py::test_each_family_fits_and_predicts_a_toy_problem[lightgbm]"   # macOS, see §11
+
+# pipeline (README.md has the same list)
+uv run python scripts/01_generate_transistor_data.py   # ~2.5 min on this Mac
+uv run python scripts/01b_generate_extra_data.py
+uv run python scripts/01c_generate_edge_data.py
+uv run python scripts/02_data_check.py
+# 5 training runs (resumable; existing models/parts/*.joblib are skipped). Use --device cpu unless you have CUDA:
+uv run python -u scripts/05d_train_per_current.py --device cpu --cases nmos_on pmos_on   --currents ig    --params '{"wnorm": "weff", "edge_data": true}'
+uv run python -u scripts/05d_train_per_current.py --device cpu --cases nmos_off pmos_off --currents id is --params '{"wnorm": "weff", "edge_data": true}'
+uv run python -u scripts/05d_train_per_current.py --device cpu --cases nmos_on pmos_on   --currents id is --params '{"wnorm": "weff", "n_members": 1}'
+uv run python -u scripts/05d_train_per_current.py --device cpu --currents ib
+uv run python -u scripts/05d_train_per_current.py --device cpu --cases nmos_off pmos_off --currents ig    --params '{"n_members": 1}'
+uv run python scripts/05e_evaluate_v2.py               # test split → results/models/, rewrites models/manifest.json
+uv run python scripts/06_gate_spice.py                 # ~40 s on this Mac
+uv run python scripts/07_gate_ml.py                    # → results/gates/
+uv run python scripts/08_circuit_spice.py              # ~30 min (51,200 runs)
+uv run python scripts/09_circuit_ml.py                 # → results/circuit/  (needs 07's gate_runs_ml.csv)
 ```
-22nm_LP.pm ──► modelcard.nominals ──► sampling.sample_case ──► netlist.single_transistor_netlist ──► spice.run_netlist (ngspice -b, thread pool)
-                                                                                                         │
-                         01_generate_transistor_data.py ◄──────── dataset.generate_case (exactly N valid rows) ◄┘
-                                     │  data/transistor/*.csv (4 × 10k)
-                     ┌───────────────┼──────────────────────────────┐
-              02_data_check     03_train_compare_models        (01b extra 30k rows)
-       Kirchhoff, distributions, 4 families × grid × 4 cases       │
-       3 trend sweeps (SPICE)   on validation → comparison_val     05b refit on 37k → 05c pick per case on val
-                                     │                              │
-                              04_select_and_evaluate  ─► models_saved/ (headline)      models_selected/ (extension)
-                              05_learning_curves                    │
-                                     │                              │
-   06_gate_spice: corners.csv + 18 cases × 200 corners, each solved twice (mandated + tight) → gate_spice.csv
-                                     │
-   07_gate_ml: SPICE node voltages → per-transistor (Vd,Vg,Vs,Vb) → route to ON/OFF model → predict currents
-               → KCL-consistent composition → leak_ml  vs leak_spice → gate tables, parity plot
-                                     │
-   08_circuit_spice: 28-NAND2 parity netlist, 256 vectors × 200 corners, cross-checked → circuit_spice.csv
-                                     │
-   09_circuit_ml: logic propagation → each NAND2's input case → look up its Part-B gate ML leakage at the same corner → sum of 28
-                                     │
-   12 tables → report/tables/*.tex   13 Overleaf bundle   14 PDF without LaTeX
-```
-
-### Phase by phase: logic and finer details
-
-**Phase 1-2: transistor data (`scripts/01`, `02`)**
-* `sampling.sample_case(case, n, seed, cfg, nominal, batch)`: the RNG is seeded with `[seed, case_index, batch]`.
-  Batch 0 is the main draw. Batches 1..19 replace failed simulations (`dataset.generate_case`), so every CSV has exactly N rows.
-  The Phase 3b extra data uses batch 101; Phase 7 edge data uses batch 102.
-  Process values are multiplied by U(0.9, 1.1), which keeps the negative sign of PMOS vth0.
-* `netlist.single_transistor_netlist`: builds one self-contained netlist per sample.
-  * The process parameters of the device under test are substituted into the BSIM4 card with a whole-token regex (`modelcard.set_params`, which errors unless each parameter appears exactly once).
-  * It sets `.temp`, gives each of the 4 terminals its own `V` source, uses AD = AS = W·Ldiff and no PD/PS (D-019; an A/B test showed only Ib changes, ~10 %).
-  * A `.control op; print i(Vd) i(Vg) i(Vs) i(Vb)` block prints the currents.
-* `spice.run_netlist`: runs `ngspice -b` in a temp dir with a 60 s timeout. Currents are parsed with a regex.
-  **Sign convention:** terminal current = −I(Vsrc), i.e. positive INTO the device, so Id+Ig+Is+Ib = 0 (verified by smoke tests).
-* Throughput: ~77 samples/s with 12 workers, about 2 min per 10k case.
-* `02_data_check`:
-  * Kirchhoff residual, reported absolute and relative.
-  * Histograms of the target magnitudes.
-  * Three trend plots from **controlled one-at-a-time SPICE sweeps** (not scatter from the dataset), each with an automatic monotonicity check. All three pass: OFF Id ×~400 from −40 to 125 °C, ×~40 over vth0 ±10 %, Ig ×~30 over toxe ±10 %.
-* **Key data finding:** currents span ~10 decades. Below ~1e-15 A the values are BSIM4 floating-point noise.
-  For example, PMOS-OFF `ig` is exactly 0 in 84.5 % of rows and otherwise sits on quantised 1.1e-16 steps.
-  Hence **I_FLOOR = 1e-15 A** (D-027): metrics count only "resolved" samples, and currents with < 5 % resolved samples are not scored (OFF `ig` in both cases).
-
-**Phase 3: transistor ML (`ml.py`, `metrics.py`, scripts `03`-`05`)**
-* Features (`ml.featurize`, 15): log W, 1000/T[K], vdd, vd, vs, vds, vgs, vgd, vbs, vbd, |vth0|, toxe in nm, log ndep, u0, xj in nm.
-* Target: **signed log** y = asinh(I / 1e-15) / ln10. This is ≈ sign·log10 above the floor and smoothly linear through 0, so it handles sign changes and 10 decades at once.
-  Both x and y are standardised.
-* Four families, each a 4-output regressor:
-  * `_TorchMLP`: float64, tanh, Adam + cosine LR, keeps the best-validation epoch, then L-BFGS polish rounds that are kept only while validation improves.
-    Loss weight 0.02 on currents that are almost pure noise.
-  * `_LGBMMulti`: one LightGBM per target, with early stopping.
-  * RBF kernel ridge.
-  * Polynomial ridge.
-* Selection score = 0.5·(median + P95) relative error, macro-averaged over the scored currents, on **validation**.
-  **The MLP wins all four cases.**
-  Test results (median / P95): NMOS ON 4.1 / 22.7 %, NMOS OFF 1.6 / 20.2 %, PMOS ON 1.9 / 11.3 %, PMOS OFF 4.2 / 22.7 %.
-* `05_learning_curves`: the error drops by a third to a half per doubling of data, so it is **not saturated**. This motivated Phase 3b.
-
-**Phase 3b: enlarged training set (`01b`, `05b`, `05c`), assumption A4**
-* Training rows = 7k + 30k; validation and test unchanged.
-* It improved 3 of the 4 transistor models, but **not** the gate level (6.6 % vs 5.5 % median). NMOS ON picked up a bias of several %, and bias does not average out in a sum.
-* `05c` picks per case on validation using score + 2·|bias|. The bias term was added *after* seeing the gate effect, and the report says so openly.
-* Decision D-038: the headline stays on the 10k models.
-
-**Phase 4: gates (`gates.py`, `corners.py`, `refsolve.py`, `gate_ml.py`, scripts `06`, `07`)**
-* `gates.GATES` is the **single source of truth** for topology and widths. The SPICE netlist builder and the ML side both read it.
-  Widths in units of Lmin (A2): INV n1/p2, NAND2 2/2, NOR2 n1/p4. AND2 = NAND2 + INV, OR2 = NOR2 + INV.
-* Corners (`make_corners`): 200 draws of VDD, T, one NMOS process draw and one PMOS process draw. Seed `[seed, 777]`. The circuit reuses them by index.
-* Gate netlist details:
-  * Ground goes through `Vgnd vss 0 dc 0` so the return current can be measured (D-032). Leakage is then measured twice: supply side and ground side.
-  * The inputs are ideal sources at exactly 0 or VDD.
-  * `.nodeset` provides start values only.
-* **Reference cross-check (`refsolve.solve_with_crosscheck`, D-031):** with exactly the mandated tolerances, ngspice converged to *wrong* operating points in 59/3600 runs (e.g. leakage 200× too high or negative) and failed in 66.
-  So every run is solved twice: tier 0 with the mandated options, and tier 1 with an extra `.options abstol=1e-15 reltol=1e-9 vntol=1e-12` line appended (the mandated line stays in the file).
-  The mandated result is used if the two agree within 1 %; otherwise the tight one is used. This is logged in the `ref_source` column.
-* **Leakage definition (A1, D-011):** total current delivered by every source sitting at VDD (the supply plus inputs held at 1). By KCL this equals the current absorbed at 0 V.
-* **ML side (`gate_ml.predict_runs`)**:
-  1. Map the SPICE node voltages (out, x/y/n) to (Vd, Vg, Vs, Vb) of each device. Inputs are ideal 0/VDD.
-  2. Route each device to a model by its gate voltage (D-029): NMOS is ON if Vg > VDD/2, PMOS is ON if Vg < VDD/2.
-  3. Predict id/ig/is/ib for every device.
-  4. **KCL-consistent composition (A3, D-030), the most important non-obvious idea in the repo.**
-     The naive sum of predicted currents at the rails gives ~100 % median error.
-     The reason: an ON transistor in a gate sits at Vds ≈ 1e-7 V, and its true channel current equals whatever leakage the blocking (OFF) network lets through. That is tiny, and the ON model cannot resolve it from Vds alone.
-     So for every ON device the channel current is treated as an **unknown J**, and its source current becomes is = −J − ig − ib.
-     Gate and body currents still come from the models.
-     The unknowns are found by least squares on the KCL equations at the internal nodes (`np.linalg.lstsq`).
-     Then the leakage is summed at the VDD-level nodes and at the 0 V-level nodes, and the two sums are averaged.
-  5. Consequence: **ON-model id/is never enter the leakage.** What matters is ON `ig`, OFF `id/is` and all `ib`.
-* Result: median 5.5 %, P95 19.6 %, bias +1.5 %, **mean accuracy 92.8 %**. The worst cases are INV_1, NAND2_11, NOR2_10/11 (~8 % median).
-
-**Phase 5: parity checker (`circuit.py`, scripts `08`, `09`)**
-* Architecture: 7 XOR2 in a balanced tree. Each XOR2 is the classic 4-NAND2 XOR (n1 = NAND(a, b), n2 = NAND(a, n1), n3 = NAND(b, n1), y = NAND(n2, n3)).
-  That gives **28 NAND2 and 112 transistors**, so every gate maps onto one of the 4 NAND2 Part-B cases.
-* SPICE: 51,200 runs, each cross-checked, in resumable chunks of 20 corners. All converged at the mandated options, with the correct logic level in 100 % of runs.
-* ML (`09`): propagate the logic values, count how many NAND2 instances fall in each of the 4 input cases for each vector, and compute
-  leak_ml = Σ count × (Part-B NAND2 ML leakage at the same corner).
-  This **reuses `results/gates/gate_runs_ml.csv`**, so script 07 must be re-run first whenever the models change.
-* Diagnostic: summing the isolated-gate *SPICE* leakages reproduces the circuit SPICE to 1e-4. So loading between gates is negligible here, and **circuit error ≈ gate-model error**.
-* Errors are corner-systematic: the std of the per-corner error is 9.9 %, but only 0.2 % across vectors.
-* Result: median 6.4 %, P95 19.1 %, **mean accuracy 92.5 %**.
-
-**Phase 6: report and reproducibility (`12`, `13`, `14`)**
-* Every number in the report comes from the CSVs via `latex.tabular` (script 12), so nothing is hand-typed.
-* Script 13 checks `\input`, images and refs, then builds the Overleaf zip.
-* Script 14 renders a PDF via PyMuPDF because no LaTeX engine was available. Its fonts and math layout differ from pdfLaTeX.
-* Reproducibility check: scripts 01 and 06 were re-run and gave byte-identical outputs. Training (03-05) and script 08 were *not* re-run.
-
-**Phase 7 (feature branch only): getting to 99 %**
-
-Diagnosis (CHANGES.md, D-041/D-043):
-1. About 98 % of gate leakage on this card is **gate-oxide tunnelling of the ON devices**. OFF subthreshold leakage is about 2 % and body current about 0.1 %.
-   The old 4-output MLP spent equal capacity on ON id/is, which the KCL composition never uses.
-2. In gates, every terminal sits **at a rail**, i.e. in a corner of the (Vd, Vs) sampling box, where uniform data is sparse.
-   The old model was 2-3× worse there than its average.
-3. **BSIM4 scales channel and tunnelling currents with Weff = W − 2·wint** (wint = 5 nm, verified in `22nm_LP.pm`). At W = Lmin that is only 55 % of the drawn W.
-   The gate-level width ratio is 2.833, not 2.
-4. Single-FET SPICE at the exact gate operating points matches the gate SPICE to < 0.1 %, so the remaining error was in the model.
-
-Fixes:
-* `ml_v2.CurrentModel`: one MLP **ensemble per current** (3 seeds, 4×128 tanh, fp32 Adam + fp64 L-BFGS polish).
-  * Constant-sign currents (ON ig, all ib) use a log10 target on resolved rows. id and is use the signed log.
-  * 6 extra physics features: Vgs/toxe, Vgd/toxe, the two overdrives, vth0/kT, VDD/toxe.
-  * Rail-emphasis sample weight 1 + 4·(e(Vd) + e(Vs)).
-  * Targets divided by Weff/Lmin.
-  * Prediction is pure numpy.
-  * `CompositeTransistorModel` keeps the same `predict()` interface, so scripts 07 and 09 run unchanged with `--models-dir models_v2`.
-* `01c_generate_edge_data.py`: 4 × 20k **rail-corner** rows (batch 102).
-  Vd and Vs are each 40 % exactly at a rail, 40 % near a rail (0.1·VDD·u²) and 20 % uniform; W is log-uniform.
-  Split: 16k train, 2k joins validation, 2k edge holdout.
-* Training data = 7k + 25k extra + 16k edge. The extra rows 25k..30k serve as a holdout.
-* Stages (gate / circuit mean accuracy):
-
-  | Stage | Gate | Circuit |
-  |---|---|---|
-  | baseline | 92.8 % | 92.5 % |
-  | per-current | 96.6 % | 97.9 % |
-  | + Weff | 97.6 % | 97.8 % |
-  | **+ edge data** | **99.65 %** | **99.73 %** |
-
-  Gate median error 0.19 %, P95 1.2 %, max 5.7 %. Every one of the 18 cases is ≥ 99.4 %. Circuit P95 0.79 %.
+* To reproduce only the ML results from the committed data and models, run `05e`, `07` and `09`. They need no torch and no ngspice.
+* `models/parts/*.joblib` is git-ignored. To retrain one current, delete that part file, re-run its 05d command, then run 05e/07/09.
 
 ---
 
-## 5. Library module cheat-sheet (`src/dvdml/`)
+## 5. End-to-end flow (`clean`)
+
+```
+22nm_LP.pm ─► modelcard.nominals ─► sampling.sample_case ─► netlist.single_transistor_netlist ─► spice.run_netlist (ngspice -b, thread pool)
+                                                                                                    │
+  01  data/transistor/*.csv (4 × 10k, batch 0) ◄── dataset.generate_case (exactly N valid rows) ◄──┘
+  01b data/transistor_extra (4 × 30k, batch 101)      01c data/transistor_edge (4 × 20k rail corners, batch 102)
+  02  results/data_check (Kirchhoff, distributions, 3 SPICE trend sweeps)
+                                        │
+  05d ml_v2.CurrentModel per (case, current): features → width-normalised log/asinh target → MLP ensemble (Adam + L-BFGS)
+      train = 7k split + 25k extra (+16k edge for some currents) │ val = 1.5k split (+2k edge) → models/parts/*.joblib
+      → CompositeTransistorModel per case → models/<case>.joblib
+  05e test split (1.5k) + holdouts → results/models/, models/manifest.json
+                                        │
+  06  corners.csv (200) + 18 gate cases × 200 corners, each solved twice (mandated + tight) → data/gates/gate_spice.csv
+  07  SPICE node voltages → (Vd,Vg,Vs,Vb) per transistor → ON/OFF routing → models predict id/ig/is/ib
+      → KCL solve for ON channel currents → leak_ml (mean of supply- and ground-side sums) vs leak_spice → results/gates/
+  08  28-NAND2 parity netlist, 256 vectors × 200 corners, cross-checked → data/circuit/circuit_spice.csv
+  09  logic propagation → each NAND2's input case → that case's gate ML leakage at the same corner → sum of 28 → results/circuit/
+```
+
+---
+
+## 6. Phase by phase: logic and finer details
+
+**Transistor data (`01`, `01b`, `01c`)**
+* `sampling.sample_case(case, n, seed, cfg, nominal, batch)` seeds its RNG with `[seed, case_index, batch]`. Batch 0 is the main draw,
+  batches 1-19 replace failed simulations (so each CSV has exactly N rows), 101 is the extra data and 102 the edge data.
+  Each column is drawn as a vector, so a run with n = 20 is *not* the first 20 rows of an n = 10,000 run.
+  Process values are multiplied by U(0.9, 1.1), which keeps PMOS vth0 negative.
+* Vg and Vb are fixed per case: NMOS ON Vg = VDD, NMOS OFF Vg = 0, Vb = 0; PMOS mirrored with Vb = VDD.
+* `netlist.single_transistor_netlist` builds one netlist per sample:
+  * it puts the sampled process values into the device's BSIM4 card with a whole-token regex (`modelcard.set_params`; the other card stays nominal);
+  * it sets `.temp`, gives each of the 4 terminals its own V source, uses AD = AS = W·Ldiff and no PD/PS;
+  * it prints the currents with `print i(Vd) i(Vg) i(Vs) i(Vb)`.
+* `spice.run_netlist` runs `ngspice -b` in a temp dir (60 s timeout).
+  **Sign convention:** terminal current = −I(source), positive INTO the device, so Id + Ig + Is + Ib = 0.
+* `01c` (edge data): VDD, T and process as usual; Vd and Vs are independently 40 % exactly at a rail, 40 % within 0.1·VDD·u² of a
+  rail and 20 % uniform; W is log-uniform. Gate operating points sit at the rails, where uniform data is sparse.
+  This uses only the fact that logic nodes are at 0 or VDD; no gate SPICE value is used.
+
+**Data check (`02`)**
+* It computes the Kirchhoff residual |Id + Ig + Is + Ib| per sample, histograms of current magnitudes, and three controlled
+  one-at-a-time SPICE sweeps with automatic trend checks. All three pass:
+  * OFF Id goes up ~400x from −40 to 125 °C;
+  * OFF Id changes ~40x over vth0 ±10 %;
+  * ON Ig goes down ~30x as toxe goes from −10 % to +10 %.
+* **Key data fact:** currents span ~10 decades. Below ~1e-15 A the values are BSIM4/ngspice floating-point noise; for example,
+  OFF-state ig is never above it. Hence **I_FLOOR = 1e-15 A**: metrics only count "resolved" samples (|I| > floor), and
+  currents with < 5 % resolved samples are not scored (OFF ig).
+
+**Transistor models (`ml_v2.py`, `05d`, `05e`)**
+* Why one model per current: about 98 % of gate leakage on this card is **gate-oxide tunnelling of ON transistors** (OFF
+  subthreshold ~2 %, body ~0.1 %). A shared 4-output network spends capacity on ON id/is, which the gate composition never uses (§6, gates).
+* Each `CurrentModel`:
+  * **Features** (`physics_features`, 21): the 15 from `ml.featurize` (log W, 1000/T, vdd, vd, vs, vds, vgs, vgd, vbs, vbd,
+    |vth0|, toxe nm, log ndep, u0, xj nm) plus Vgs/toxe, Vgd/toxe, |Vgs|−Vth, |Vgd|−Vth, Vth/kT, VDD/toxe. All are standardised.
+  * **Width normalisation:** the current is divided by Weff/Lmin with Weff = W − 2·wint (wint = 5 nm, from the card), or by W/Lmin
+    for ib (junction area) and the settings marked "W" below. BSIM4 scales channel and tunnelling current with Weff, which is
+    only 55 % of W at W = Lmin.
+  * **Target:** `log` mode = log10(|I|), trained only on resolved rows, for currents that never change sign (ON ig, all ib).
+    The sign is stored as the median sign. `asinh` mode = asinh(I / 1e-15) / ln10 (signed log) for id, is and OFF ig.
+  * **Network:** 21 → 4 x [128, tanh] → 1 (~52k weights).
+  * **Loss:** mean squared error with weight 1 + 4·(e(Vd) + e(Vs)), where e = exp(−distance to nearest rail / 0.05·VDD).
+  * **Training:** Adam in float32 (1500 epochs, batch 512, lr 3e-3 with cosine decay, keeps the best validation state checked every
+    10 epochs), then up to 6 full-batch L-BFGS rounds in float64, each kept only if validation improves.
+  * **Ensemble:** n_members seeds; the prediction is their mean in target space.
+  * **Prediction is pure numpy** (`h @ W.T + b`, tanh), so torch is only needed for training.
+* `CompositeTransistorModel` = the 4 `CurrentModel`s of a case. Its `predict(df)` returns id, ig, is and ib in A, the same interface
+  as `main`'s models, so 07/09 did not need changes. **So the setup is 16 networks inside 4 model files.**
+* The final settings per current (`models/manifest.json`) come from 5 separate 05d runs:
+
+  | Current | Target | Members | Edge data | Width |
+  |---|---|---|---|---|
+  | ON ig | log | 3 | yes | Weff |
+  | OFF id, is | asinh | 3 | yes | Weff |
+  | ON id, is | asinh | 1 | no | Weff |
+  | all ib | log | 3 | no | W |
+  | OFF ig | asinh | 1 | no | W |
+
+* **Training rows per case:** 32,000 uniform (7,000 split + 25,000 extra), plus 16,000 rail-corner rows for the "edge" currents (48,000).
+  Validation is 1,500 rows (+2,000 rail-corner). Test is the original 1,500-row split, the same as on `main`.
+* `05e` evaluates once on the test split and on the uniform and rail-corner holdouts, broken down by (Vd, Vs) rail-corner region.
+
+**Gates (`gates.py`, `corners.py`, `refsolve.py`, `gate_ml.py`, `06`, `07`)**
+* `gates.GATES` is the single definition of topology and widths, and both SPICE and ML read it.
+  * Widths in Lmin: INV n1/p2, NAND2 2/2, NOR2 n1/p4.
+  * AND2 = NAND2 + INV and OR2 = NOR2 + INV, simulated as complete gates.
+* **Corners** (`make_corners`): 200 draws of VDD, T, one NMOS process draw and one PMOS process draw, seed `[seed, 777]`. All NMOS in a gate share
+  one draw and all PMOS share another. The circuit reuses the same corners by index.
+* **Gate netlists:**
+  * ground goes through `Vgnd vss 0 dc 0`, so the return current is measurable;
+  * the inputs are ideal sources at exactly 0 or VDD;
+  * `.nodeset` gives starting values only.
+* **Reference cross-check (`refsolve.solve_with_crosscheck`, D-031):** with exactly the mandated tolerances, ngspice converged to wrong
+  operating points in 59 of 3,600 runs and failed in 66. So every run is solved twice:
+  * with the mandated options;
+  * with an extra `.options abstol=1e-15 reltol=1e-9 vntol=1e-12` line.
+
+  If the two agree within 1 %, the mandated result is used; otherwise the tight one. The choice is logged in `ref_source`.
+* **Leakage definition (A1):** total current delivered by every source at VDD (the supply plus inputs held at 1). It equals the current absorbed at 0 V.
+* **ML side (`gate_ml.predict_runs`):**
+  1. Copy the SPICE node voltages (out, internal x/y/n) to each transistor's (Vd, Vg, Vs, Vb). The inputs are ideal 0/VDD.
+  2. Route each device to a model by its gate voltage: NMOS is ON if Vg > VDD/2, PMOS is ON if Vg < VDD/2.
+  3. Predict id, ig, is and ib.
+  4. **KCL-consistent composition (A3, D-030):**
+     * An ON transistor in a gate has Vds ≈ 1e-7 V. Its channel current is tiny and is set by whatever the OFF network leaks, so
+       a model cannot predict it.
+     * So for each ON device the channel current is an unknown J, with is = −J − ig − ib.
+     * KCL at every internal node gives equations, which are solved by least squares (`np.linalg.lstsq`).
+     * The currents are then summed at the VDD-level nodes and at the 0 V nodes, and the two sums are averaged.
+  5. **Consequence:** ON-model id/is never enter the leakage. What matters is ON ig, OFF id/is and all ib.
+* The naive sum of model currents (`gate_estimators.csv`) is off by up to ~3000x (median error 180 % / 97 %), which is why the KCL method is needed.
+
+**Parity checker (`circuit.py`, `08`, `09`)**
+* **Architecture (D-035):** 7 XOR2 in a balanced tree. Each XOR2 is the classic 4-NAND2 XOR: n1 = NAND(a,b), n2 = NAND(a,n1),
+  n3 = NAND(b,n1), y = NAND(n2,n3). That makes 28 NAND2 and 112 transistors, so every gate maps to one of the 4 Part-B NAND2 cases.
+* **SPICE:** 51,200 runs, cross-checked, in resumable chunks of 20 corners. The output is at the correct logic rail in 100 % of runs.
+* **ML (`09`):** propagate the logic values (`instance_cases`), count the NAND2s per input case for each vector, then
+  leak_ml = Σ count × (Part-B NAND2 ML leakage at the same corner). It reads `results/gates/gate_runs_ml.csv`, so run 07 first.
+* **Diagnostic:** the sum of isolated-gate SPICE leakages reproduces circuit SPICE to within 1e-4, so loading between gates is
+  negligible and circuit error ≈ gate-model error.
+
+---
+
+## 7. Results (`clean`, committed CSVs)
+
+**Transistor test split** (`results/models/test_results.csv`): median / P95 relative error on resolved samples.
+
+| Case | id | ig | is | ib | Macro median / P95 | R² (signed log) |
+|---|---|---|---|---|---|---|
+| NMOS ON | **12.7 / 99.8 %** (bias +22 %) | 0.59 / 7.2 % | **14.7 / 46.3 %** (bias +7 %) | 0.27 / 1.6 % | 7.1 / 38.7 % | 0.997 |
+| NMOS OFF | 1.9 / 9.4 % | noise | 1.3 / 9.6 % | 0.15 / 0.86 % | 1.1 / 6.6 % | 0.989 |
+| PMOS ON | 3.9 / 14.1 % | 0.16 / 0.75 % | 6.5 / 27.9 % | 0.33 / 2.5 % | 2.7 / 11.3 % | 0.999 |
+| PMOS OFF | 2.6 / 15.2 % | noise | 2.9 / 13.8 % | 0.19 / 2.2 % | 1.9 / 10.4 % | 0.975 |
+
+**Gates** (`results/gates/`): 3,600 runs. Mean accuracy **99.65 %**, median error 0.19 %, P95 1.2 %, max 5.7 %, bias +0.03 %.
+* By gate (mean accuracy): INV 99.43 %, NAND2 99.75 %, NOR2 99.58 %, AND2 99.70 %, OR2 99.66 %.
+* All 18 cases are ≥ 99.4 %. The worst are INV_0 / INV_1 (99.44 / 99.41 %) and NOR2_10 (99.42 %).
+* Supply-side and ground-side estimates agree (median 0.20 % vs 0.20 % error).
+
+**Parity checker** (`results/circuit/`): 51,200 runs, typical leakage ≈ 2.9 nA.
+* Mean accuracy **99.73 %**, median 0.19 %, P95 0.79 %, max 1.6 %, bias +0.14 %.
+* It is flat across the number of 1s in the input (99.72-99.75 %).
+
+**Model comparison** (`results/model_comparison.md`, from `main`): the MLP wins all 4 cases on validation, with a score 2.5-5x
+better than LightGBM. Kernel ridge and polynomial ridge have P95 errors from hundreds to tens of thousands of percent.
+
+**How Phase 7 got there** (from the Phase 7 branch's stage comparison):
+
+| Stage | Gate | Circuit |
+|---|---|---|
+| `main` (one 4-output MLP per case, 7k rows) | 92.8 % | 92.5 % |
+| one model per current, W-normalised | 96.6 % | 97.9 % |
+| + Weff | 97.6 % | 97.8 % |
+| **+ rail-corner data (final)** | **99.65 %** | **99.73 %** |
+
+---
+
+## 8. Library cheat-sheet (`src/dvdml/`)
 
 | Module | Key API | Notes |
 |---|---|---|
-| `config.py` | `load_config()`, `model_path()`, `REPO_ROOT` | YAML loader |
+| `config.py` | `load_config()`, `model_path()`, `REPO_ROOT` | `model_path` = REPO_ROOT / `assignment.model_file` (= `22nm_LP.pm`) |
 | `modelcard.py` | `split_cards`, `get_param`, `set_params`, `nominals` | Whole-token regex, so `xj` never matches `xjbvs` |
-| `sampling.py` | `CASES`, `sample_case`, `gate_body_voltages` | Seed `[seed, case_idx, batch]` |
-| `netlist.py` | `single_transistor_netlist` | DUT card gets the sampled params; the other card stays nominal |
-| `spice.py` | `run_netlist`, `parse_source_currents`, `terminal_currents`, `ngspice_exe` | `NGSPICE_EXE` env var overrides `cfg.spice.exe` |
-| `dataset.py` | `simulate_samples` (thread pool), `generate_case` | Threads are enough because the work runs in subprocesses |
-| `metrics.py` | `I_FLOOR`, `to/from_signed_log`, `summarize`, `macro` | "resolved" = \|true\| > 1e-15 |
-| `ml.py` | `featurize`, `TransistorModel`, `_TorchMLP`, `_LGBMMulti`, `GRIDS` | `predict(df)` → DataFrame id/ig/is/ib in A |
-| `corners.py` | `make_corners` | 200 corners, shared n_/p_ draws |
-| `gates.py` | `GATES`, `gate_netlist`, `parse_values`, `leakage_from_values`, `leakage_ground_side`, `node_voltages`, `FALLBACK_OPTIONS` | One topology definition feeds both SPICE and ML |
+| `sampling.py` | `CASES`, `INPUT_COLUMNS`, `sample_case`, `device_type` | Seed `[seed, case_idx, batch]` |
+| `netlist.py` | `single_transistor_netlist` | The tested device's card gets the sampled values; the other card stays nominal |
+| `spice.py` | `run_netlist`, `parse_source_currents`, `terminal_currents`, `ngspice_exe` | `NGSPICE_EXE` overrides `cfg.spice.exe` |
+| `dataset.py` | `simulate_samples` (thread pool), `generate_case` | Threads are enough because ngspice runs as subprocesses |
+| `metrics.py` | `I_FLOOR`, `to/from_signed_log`, `summarize`, `macro` | "Resolved" = \|true\| > 1e-15 |
+| `ml.py` | `featurize` (used by `ml_v2`); also `TransistorModel`, `GRIDS`, `FAMILIES` of the old comparison | Kept whole because `ml_v2` imports `featurize`. Its LightGBM family causes the macOS hang (§11) |
+| `ml_v2.py` | `physics_features`, `edge_weight`, `CurrentModel`, `CompositeTransistorModel`, `MODES` | The Phase 7 models; pure-numpy prediction |
+| `corners.py` | `make_corners` | 200 corners, shared NMOS/PMOS process draws |
+| `gates.py` | `GATES`, `gate_netlist`, `parse_values`, `leakage_from_values`, `node_voltages`, `case_name` | One topology definition feeds both SPICE and ML |
 | `refsolve.py` | `solve_with_crosscheck` | Mandated vs tight solve, 1 % agreement rule |
 | `gate_ml.py` | `transistor_rows`, `route`, `predict_runs` | Naive sums + KCL composition |
-| `circuit.py` | `INSTANCES`, `logic_values`, `instance_cases`, `circuit_netlist` | 28 NAND2 |
-| `latex.py`, `plots.py` | Table/plot helpers | |
-| `ml_v2.py` *(branch)* | `physics_features`, `edge_weight`, `CurrentModel`, `CompositeTransistorModel`, `MODES` | Pure-numpy inference |
+| `circuit.py` | `INSTANCES`, `logic_values`, `instance_cases`, `circuit_netlist`, `parity` | 28 NAND2 |
+| `plots.py` | `plot_case` | Predicted-vs-SPICE plots (05e) |
 
 ---
 
-## 6. Assumptions and decisions you should know about (not TA-confirmed)
+## 9. Assumptions (team decisions, NOT confirmed by the TAs)
+
+The full decision log is on `main` (`docs/DECISIONS.md`, `docs/PROJECT_CONTEXT.md`); D-041..D-044 are on the Phase 7 branch.
 
 | ID | Assumption | Why it matters |
 |---|---|---|
-| A1 / D-011 | Leakage = current from all VDD-level sources (supply + inputs at 1) | Includes the gate-tunnelling current drawn from the input drivers |
-| A2 / D-012, D-029 | Widths INV 1/2, NAND2 2/2, NOR2 1/4 ×Lmin; ON/OFF routing by Vg vs VDD/2 | Gate results depend directly on these |
-| A3 / D-030 | KCL composition instead of a plain sum | The plain sum gives ~100 % error. This is the method's core, and it should be defended in the report/viva |
-| A4 / D-034, D-037 | Training data beyond 10k rows | The PDF allows "increased or decreased as needed". Phase 7 depends on it heavily (48k rows, a third of them non-uniform) |
-| D-031 | Tight-tolerance cross-check of the SPICE reference | Deviates from "literal mandated tolerances" in 3.5 % of gate runs |
-| D-035 | Parity = 28 NAND2 | Any of the 5 allowed gates would do; NAND2 converged most robustly |
-| Q7 | "Internal node voltages from both": the ML side just copies the SPICE voltages | The ML never estimates node voltages itself (see improvement I-4) |
+| A1 / D-011 | Leakage = current from all VDD-level sources (supply + inputs at 1) | Includes the gate current drawn from the input drivers |
+| A2 / D-012, D-029 | Widths INV 1/2, NAND2 2/2, NOR2 1/4 x Lmin; ON/OFF routing by Vg vs VDD/2 | Gate results depend directly on these |
+| A3 / D-030 | KCL composition instead of a plain sum | The plain sum is off by orders of magnitude. This is the core of the method; be ready to defend it |
+| A4 / D-034, D-037, D-043 | Training beyond the 10k rows: +25k uniform, +16k rail-corner rows (non-uniform Vd/Vs) | The PDF allows more samples, but the rail-corner rows deliberately bend "draw uniformly". Disclose it |
+| D-031 | Tight-tolerance cross-check of the SPICE reference | Departs from the literal mandated tolerances in ~3.5 % of gate runs |
+| D-035 | Parity checker = 28 NAND2 | Any of the 5 allowed gates would do |
+| Q6/Q7 | The ML side copies SPICE node voltages; circuit ML uses the isolated-gate voltages at the same corner | The ML never estimates node voltages itself |
 
 ---
 
-## 7. Review findings: issues and risks (ordered by importance)
+## 10. Verification done on `clean` (macOS, 2026-11-15)
 
-1. **Phase 7 is unmerged and the report still shows 92.8 %.** The single biggest gap. It needs a D-044 decision, then a re-run of scripts 12/13/14 and new text in report sections 3-7.
-2. **Phase 7 trade-off at transistor level (deliverable 5).** On the uniform test split, `models_v2` NMOS-ON id/is are much worse than Phase 3: median 12.7 / 14.7 % with **+22 % bias** on id and P95 ~100 %, vs 5.6 / 5.2 % before.
-   The macro median for NMOS ON goes 4.1 % → 7.1 %.
-   This is harmless for leakage (KCL ignores ON id/is), but deliverable 5 asks for test errors of the "four saved model files", so a reviewer will see a regression there.
-   Options: ship different models per deliverable, or give ON id/is the 3-member ensemble too.
-3. **Soft evaluation leakage in Phase 7, acknowledged in D-043/D-044.** No gate or circuit value entered training. But the *design* (Weff, rail emphasis) was found by looking at gate-level errors (the 2.833 vs 2.70 ratio).
-   Weff is physics from the model card, so it is defensible. The rail sampling uses only "logic nodes sit at rails".
-   Still, be ready to explain this to the TAs.
-4. **Stale and contradictory docs.**
-   * `CLAUDE.md:23,29,45` still say the folders and scripts "do not exist yet" and "no implementation until approved".
-   * `docs/IMPLEMENTATION_PLAN.md` header still says "PROPOSED - not approved".
-   * `docs/PROJECT_STATUS.md:63-64` still lists Phase 3b as "in progress".
-   * On the branch, PROJECT_STATUS line 6 says both "target reached" and "target NOT reached".
-5. **Platform assumptions.**
-   * Every run instruction is Windows-only (`.venv\Scripts\python.exe`, `set NGSPICE_EXE=...`, `ngspice_con`).
-   * `05d_train_per_current.py` defaults to `--device cuda`, which does not exist on a Mac. Apple MPS has no float64, and the L-BFGS polish needs it, so use `--device cpu`.
-   * This Mac has Python 3.13 (Anaconda), no torch and no ngspice.
-6. **Hard-coded constants in `ml_v2.py`** (branch, lines 25-26): `LMIN = 22e-9`, `WINT = 5e-9`. They belong in the config, or `wint` should be read from the model card with `modelcard.get_param`. This breaks the repo's own "no magic numbers" rule.
-7. **`ml_v2` "log" mode sign** (branch line 100) is a single median sign per current. That is fine only if the current never changes sign. True for the chosen currents today, but nothing checks it. A guard or test would catch a future regression silently flipping sign.
-8. **Code-quality nits (main)**
-   * `gate_ml.py:71-76`: `rail_sums` uses `terminals_keys`, which is defined *after* the function. It works through the closure but is fragile. Each run also does its own Python-loop `lstsq`, which is slow but fine at 3,600 runs.
-   * `summarize()` is copy-pasted in `07`, `09` and (as `stats`) `05f`.
-   * `circuit._x_guess` duplicates part of `gates._nodeset_guess`.
-   * `scripts/02_data_check.py:28` uses `FLOOR = 1e-16` while the rest of the repo uses `I_FLOOR = 1e-15` (D-027). It only affects the data-check table.
-   * `09_circuit_ml.py:59` builds lookups with a Python list comprehension over 51,200 rows; a pandas merge would be cleaner and faster.
-   * `ml.GRIDS` is tiny (2 MLP configs, 2 LightGBM configs), so the "4 families compared" table slightly favours the MLP, which got the most engineering.
-9. **Reproducibility gaps.** Training (scripts 03-05, 05b, 05d) was never re-run from scratch, and multithreaded float sums can differ in the last digits.
-   Script 08 (30 min) was not re-run either. Phase 7 training takes ~2.5 h on a GPU.
-10. **Repo weight.** Big binaries are committed: datasets, 4 model dirs, `dist/` with a duplicate of `report/`, and on the branch ~15 MB of `models_v2` plus 51k-row result CSVs.
-    That is acceptable for a course repo, but `dist/report_overleaf/` duplicates `report/` and has to be regenerated every time, or it drifts.
+Environment: `uv sync` (Python 3.12.x, torch 2.15, numpy 2.5.4, pandas 2.3.3), Homebrew ngspice 47.
+
+| Check | Result |
+|---|---|
+| pytest | **100 of 101 pass**, including the ngspice tests. The LightGBM toy test hangs only when the whole suite runs on macOS; it passes on its own |
+| `05e`, `07`, `09` re-run | Identical to the committed CSVs up to 1.7e-10 relative. 99.65 % / 99.73 % reproduced. PNGs differ only in rendering |
+| `02` re-run | Tables identical (apart from CRLF line endings). One trend ratio differs in the 7th digit (ngspice build) |
+| `01` full re-run (40k sims, 2.5 min) | Inputs identical; id and is identical. Only currents within ~10x of 1e-15 A differ (noise floor) |
+| `01b`, `01c` (20 rows) | Run fine |
+| `06` full re-run (3,600 runs, 40 s) | Corners identical (apart from CRLF and last digits). Leakage within 1e-3 (median 3e-6); `ref_source` differs in 92 runs. **Gate ML accuracy against this reference: 99.647 %, unchanged** |
+| `08` (2 corners x 256 vectors) | Leakage within 1e-5 of the committed runs; parity correct |
+| `05d` (3 epochs, CPU) | Trains and writes the part file. With the default `--device cuda`: `Torch not compiled with CUDA enabled` |
+| File moves | Every model, result and netlist file is byte-identical to its Phase 7 original (git blob hashes) |
+
+Not done: full training (several hours on CPU), full `08` (30 min), regenerating `data/splits` (its script is on `main`).
 
 ---
 
-## 8. Improvement backlog (my suggestions, roughly by value/effort)
+## 11. Known issues and review findings (`clean`)
+
+1. **Deliverable 5 regression (NMOS ON id/is).**
+   * On the test split, median id is 12.7 % (`main`: 5.6 %) with a +22 % bias, and is is 14.7 % (`main`: 5.2 %).
+   * Leakage doesn't suffer, because KCL never uses ON id/is.
+   * The deliverable asks for test errors of the saved models, so a reviewer will see it.
+   * Cause: ON id/is use 1 member and no edge data. The ON-id error at the rails is large: on the test split, the median at Vd,Vs > 0.9·VDD is ~120 % (n = 10).
+2. **Design guided by gate results (soft evaluation leakage).**
+   * No gate or circuit SPICE value entered training.
+   * But Weff normalisation, rail emphasis and which currents get edge data were chosen after looking at gate-level errors.
+   * Weff is physics read from the card, and the edge sampling uses only "logic nodes sit at rails". Still, the 99.65 % is somewhat optimistic; disclose it.
+3. **Rail-corner data departs from uniform sampling.** The PDF says to draw inputs independently from the Section 4 distributions.
+   The deliverable CSVs stay uniform; the 16k rail rows are extra training data. Ask the TA.
+4. **The report is not on `clean`, and the one on `main` still shows 92.8 % / 92.5 %.** Deliverable 10 needs new numbers.
+5. **`05d` defaults to `--device cuda`.** It fails without an NVIDIA GPU, so pass `--device cpu`. Apple MPS has no float64, which L-BFGS needs.
+6. **`config/project.yaml` names ngspice `ngspice_con`** (Windows). Set `NGSPICE_EXE` everywhere else.
+7. **macOS: torch + LightGBM in one process.** Both torch and scikit-learn bundle their own `libomp`. After torch runs, LightGBM fails with
+   `OMP: System error #22` and hangs. This only affects `ml.py`'s comparison code and `tests/test_ml.py[lightgbm]`; Phase 7 doesn't use LightGBM.
+8. **`data/splits/` cannot be regenerated on `clean`.** `make_split` lives in `main`'s `scripts/03_train_compare_models.py`.
+9. **Building the models takes 5 separate 05d runs.** A single default run does not reproduce them. 05d skips existing parts, so stale
+   `models/parts/*.joblib` files are silently reused.
+10. **Hard-coded constants:** `ml_v2.py:25-26` `LMIN = 22e-9`, `WINT = 5e-9`. They should come from the config or the card (`modelcard.get_param`).
+11. **`log` mode sign** (`ml_v2.py:100`): one median sign per current, with no check that the current never changes sign.
+12. **Code nits:**
+    * `gate_ml.py:74-76`: `rail_sums` uses `terminals_keys`, which is defined after it (works through the closure, but fragile).
+    * `summarize` is duplicated in `07` and `09`.
+    * `02_data_check.py:28` uses `FLOOR = 1e-16` while the rest uses 1e-15.
+    * `09_circuit_ml.py:59-60` builds lookups with a Python list comprehension over 51,200 rows.
+    * Dropped docs are still referenced in docstrings (D-0xx numbers, `docs/...`); they live on `main`.
+13. **Line endings:** the committed text files are CRLF (made on Windows) and there is no `.gitattributes`. Files regenerated on Mac/Linux show as fully changed in `git diff`.
+14. **Branch policy:** `clean` and the Phase 7 branch go against the team's "main only" rule (D-040). Agree on what becomes `main`.
+
+---
+
+## 12. Improvement backlog (rough value/effort order)
 
 | # | Idea | Why | Effort |
 |---|---|---|---|
-| I-1 | **Decide D-044, merge Phase 7 (fast-forward), update the report** (sections 3-7, tables via script 12, re-render 13/14). Keep the 10k models as the "specified-setting baseline" and present both | The 99 % result is the deliverable that matters | M |
-| I-2 | Fix deliverable 5 for `models_v2`: give ON id/is the same 3-member ensemble (and maybe edge data), or report the per-current choice explicitly | Removes the visible transistor-level regression | M (GPU hours) |
-| I-3 | Clean the docs: CLAUDE.md "not created yet" lines, IMPLEMENTATION_PLAN status, PROJECT_STATUS "in progress" and the contradiction on the branch; normalise line endings (`.gitattributes` with `* text=auto`) | Stops future sessions and teammates from being misled | S |
-| I-4 | Close the "node voltages from both" gap (Q7): solve the internal node voltages from the ML currents (Newton/KCL on x, y, n with the transistor models) instead of copying the SPICE values. Report the ML-predicted node voltages next to the SPICE ones | The PDF literally asks for both. It also makes the ML pipeline independent of SPICE node data, a strong report point | M-L |
-| I-5 | Cross-platform run instructions + `Makefile`/`run_all.py` (`--device auto`: cuda → cpu), Python 3.12 venv on macOS, `brew install ngspice` | Lets the rest of the team (this Mac included) reproduce | S |
-| I-6 | Move `LMIN`/`WINT` into config / read `wint` from the card; add a sign-consistency assertion in `CurrentModel.fit` | Robustness | S |
-| I-7 | Deduplicate `summarize`; vectorise the gate KCL solve and the circuit lookup | Maintainability, speed | S |
-| I-8 | Fair model comparison for Phase 7: also run LightGBM / kernel ridge on the per-current + Weff + edge setup (same targets and features), so the "4 types × 4 cases" table reflects the final method | The report's "reason for final choice" becomes stronger | M |
-| I-9 | Error analysis beyond aggregates: errors vs T, vth0, VDD for `models_v2` (the plots exist in `results/gates_v2/gate_error_vs_corner.png`); explain the remaining INV_0 / INV_1 / NOR2_10 worst cases (~0.4 % median, max 5.7 %) | Required report section "Error analysis" | S-M |
-| I-10 | Uncertainty from the ensemble spread (3 seeds), as a confidence band on the predicted leakage | Cheap, nice report addition | S |
-| I-11 | Learning curve for Phase 7 (how much edge data is actually needed) | The PDF's "smallest dataset possible" goal | M |
-| I-12 | Full clean-run reproducibility check including training, documented runtimes | Deliverable 9 | M-L |
+| I-1 | Fix deliverable 5: retrain ON id/is with 3 members + edge data (or with a bias check), then re-run 05e/07/09 | Removes the visible transistor-level regression | M (CPU hours) |
+| I-2 | Team decision: make `clean` (or Phase 7) the main line, then update the report with the new numbers and disclosures (§11.2-3) | The 99 % result is what will be graded | M |
+| I-3 | Add `scripts/02b_make_splits.py` (exact copy of `make_split`) so `clean` rebuilds from scratch; check that it reproduces the npz byte for byte | Self-contained pipeline | S |
+| I-4 | A single `--recipe` / config file for the 5 training runs (instead of 5 command lines), and `--device auto` (cuda → cpu) | Reproducible training with one command | S |
+| I-5 | `.gitattributes` (`* text=auto`), and default `spice.exe` to `ngspice` with the Windows name only in an override | Cross-platform | S |
+| I-6 | Move `LMIN`/`WINT` to config or read `wint` from the card; assert the sign is constant in `log` mode | Robustness | S |
+| I-7 | Solve the internal node voltages from the ML currents (Newton/KCL) instead of copying SPICE (Q7: "node voltages from both") | Makes the ML pipeline independent of SPICE node data; strong report point | M-L |
+| I-8 | Fair comparison for the final setup: LightGBM / kernel ridge on the per-current + Weff + edge targets | Stronger "reason for final choice" | M |
+| I-9 | Error analysis for the report: errors vs T, vth0, VDD (`results/gates/gate_error_vs_corner.png`); explain the INV / NOR2_10 worst cases | Required report section | S-M |
+| I-10 | Ensemble spread as an uncertainty band on predicted leakage | Cheap report addition | S |
+| I-11 | Learning curve for Phase 7 (how much edge data is needed) | The PDF's "smallest dataset possible" goal | M |
+| I-12 | Full clean-run reproducibility including training and `08`, with runtimes | Deliverable 9 | M-L |
+| I-13 | Deduplicate `summarize`; vectorise the gate KCL solve and the circuit lookup; fix the 02 floor constant | Maintainability, speed | S |
 
 ---
 
-## 9. How to run it on this Mac (untested here)
+## 13. Quick numbers reference
 
-```bash
-brew install ngspice                         # BSIM4 level 54 is built in; check: ngspice -v
-python3.12 -m venv .venv && source .venv/bin/activate   # repo targets 3.12; this Mac has 3.13 (Anaconda) by default
-pip install -r requirements.txt torch        # torch is missing from main's requirements.txt (added on the Phase 7 branch)
-export NGSPICE_EXE=$(which ngspice)
-python scripts/00_check_env.py
-python -m pytest -q                          # ngspice-dependent tests skip if ngspice is missing
-# Prediction-only paths (07, 09) need no ngspice: they read the committed CSVs + models.
-python scripts/07_gate_ml.py                 # reproduces results/gates from models_saved/
-# Phase 7 branch: python scripts/07_gate_ml.py --models-dir models_v2 --out-dir results/gates_v2
-# Training on Mac: scripts/05d ... --device cpu  (no CUDA; MPS lacks float64)
-```
-Note: the ngspice 47 build used on Windows was the official KLU build. A Homebrew ngspice may differ in the last digits.
-Datasets were shown bit-identical only between the two Windows machines.
-
----
-
-## 10. Quick numbers reference
-
-| | main headline (`models_saved`) | Phase 7 (`models_v2`, branch) |
+| | `clean` (Phase 7, `models/`) | `main` baseline (for comparison) |
 |---|---|---|
-| Gate: mean accuracy / median / P95 / max / bias | 92.8 % / 5.5 % / 19.6 % / 59 % / +1.5 % | 99.65 % / 0.19 % / 1.2 % / 5.7 % / +0.03 % |
-| Circuit: mean accuracy / median / P95 / max | 92.5 % / 6.4 % / 19.1 % / 46 % | 99.73 % / 0.19 % / 0.79 % / 1.6 % |
-| Transistor test macro median (NMOS ON / NMOS OFF / PMOS ON / PMOS OFF) | 4.1 / 1.6 / 1.9 / 4.2 % | 7.1 / 1.1 / 2.7 / 1.9 % |
-| ON `ig` test median (NMOS / PMOS) | 2.8 % / 1.1 % | 0.59 % / 0.16 % |
-| Training rows per case | 7,000 | 48,000 (7k + 25k uniform + 16k rail-corner) |
+| Gate: mean accuracy / median / P95 / max / bias | **99.65 %** / 0.19 % / 1.2 % / 5.7 % / +0.03 % | 92.8 % / 5.5 % / 19.6 % / 59 % / +1.5 % |
+| Circuit: mean accuracy / median / P95 / max | **99.73 %** / 0.19 % / 0.79 % / 1.6 % | 92.5 % / 6.4 % / 19.1 % / 46 % |
+| Transistor test macro median (NMOS ON / NMOS OFF / PMOS ON / PMOS OFF) | 7.1 / 1.1 / 2.7 / 1.9 % | 4.1 / 1.6 / 1.9 / 4.2 % |
+| ON ig test median (NMOS / PMOS) | 0.59 % / 0.16 % | 2.8 % / 1.1 % |
+| Networks | 16 (4 per case) in 4 files | 4 (one 4-output MLP per case) |
+| Training rows per case | 32,000-48,000 (7k + 25k uniform [+ 16k rail-corner]) | 7,000 |
+| Data sizes | 4 x 10k + 4 x 30k extra + 4 x 20k edge transistor rows; 3,600 gate runs; 51,200 circuit runs | 4 x 10k (+ 4 x 30k extension) |
