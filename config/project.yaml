@@ -1,4 +1,4 @@
-# Single source of truth for the assignment parameters (see docs/PROJECT_CONTEXT.md).
+# Single source of truth for the assignment parameters (Team 26: PTM 22nm_LP, VDD = 1 V, 8-bit parity checker).
 assignment:
   model_file: 22nm_LP.pm
   vdd_nom: 1.0            # V (assigned)

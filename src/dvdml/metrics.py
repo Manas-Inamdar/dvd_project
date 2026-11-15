@@ -1,4 +1,4 @@
-"""Error metrics for current predictions (docs/DECISIONS.md D-021, D-024, D-027).
+"""Error metrics for current predictions (noise floor I_FLOOR = 1e-15 A, see report Section 3.1).
 
 Terminology
   floor      I_FLOOR = 1e-15 A. Currents with |I| below it are at the numerical-noise level of the BSIM4/ngspice

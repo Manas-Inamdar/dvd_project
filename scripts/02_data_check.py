@@ -25,7 +25,7 @@ from dvdml.config import load_config, model_path  # noqa: E402
 from dvdml.sampling import CASES  # noqa: E402
 
 CUR = ["id", "ig", "is", "ib"]
-FLOOR = 1e-16  # A, see DECISIONS D-021
+FLOOR = 1e-16  # A, Kirchhoff check: samples whose largest current is below this are reported separately
 
 
 def kirchhoff(data_dir: Path, out: Path):

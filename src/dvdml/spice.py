@@ -1,6 +1,6 @@
 """Run ngspice in batch mode and parse printed currents.
 
-Sign convention (docs/DECISIONS.md D-006): terminal currents are positive INTO the device.
+Sign convention: terminal currents are positive INTO the device.
 ngspice's I(Vsrc) is positive into the source's + node (+ node = device node, - node = ground), i.e. OUT of the
 device, so  i_into_device = -I(Vsrc).  To be verified by the smoke test once ngspice is available.
 """

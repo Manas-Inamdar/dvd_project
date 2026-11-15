@@ -1,7 +1,7 @@
 [project]
 name = "dvdml"
 version = "0.7.0"
-description = "ML-driven PVT-aware leakage estimation (22nm LP, 8-bit parity checker) - Phase 7 per-current models"
+description = "ML-driven PVT-variation-aware leakage estimation: PTM 22nm LP transistors, CMOS gates and an 8-bit parity checker"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "numpy",
@@ -11,8 +11,8 @@ dependencies = [
     "matplotlib",
     "pyyaml",
     "joblib",
-    "lightgbm",        # only used by the model-family code in src/dvdml/ml.py (kept because ml_v2 reuses its features)
-    "torch",           # training only (scripts/05d); prediction of the saved models is pure numpy
+    "lightgbm",        # model comparison (scripts/04, src/dvdml/ml.py)
+    "torch",           # training only (scripts/04, 05d); prediction of the saved models is pure numpy
 ]
 
 [dependency-groups]

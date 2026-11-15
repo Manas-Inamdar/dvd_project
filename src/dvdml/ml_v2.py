@@ -1,6 +1,6 @@
 """Per-current transistor models (D-041): one dedicated MLP ensemble per terminal current, physics-normalised targets.
 
-Why (see docs/DECISIONS.md D-041): gate leakage of this 22nm LP card is ~98 % gate tunnelling of ON devices, and the gate operating points
+Why (see report Section 3.3): gate leakage of this 22nm LP card is ~98 % gate tunnelling of ON devices, and the gate operating points
 (Vd, Vs at the rails) sit on the edges of the uniformly sampled (Vd, Vs) box. The single 4-output MLP of `ml.py` was 2-3x less accurate there
 than on average. This module changes four things, all decided on TRANSISTOR data only (never gate/circuit SPICE data):
 
