@@ -1,0 +1,14 @@
+\section{Conclusion}\label{sec:conclusion}
+Machine-learning models trained only on single-transistor SPICE data of the assigned PTM 22\,nm LP card predict the leakage of CMOS gates and of an
+8-bit parity checker under PVT variation with SPICE-level accuracy:
+\input{tables/headline}
+\begin{itemize}
+  \item Of four model types compared on the validation sets, the MLP was the most accurate for every transistor case. Specialising it per terminal
+        current, with effective-width-normalised targets and training data at the rail corners where gates operate, raised the gate-level mean accuracy
+        from 92.8\,\% to 99.65\,\%.
+  \item A Kirchhoff-consistent composition of the transistor currents is essential: a plain sum of predicted terminal currents is off by orders of
+        magnitude, because the channel current of the ON transistors in a leaking gate is set by the circuit, not by the device.
+  \item The parity checker reaches 99.73\,\%: for rail-to-rail inputs, loading between gates is negligible, so the circuit inherits the gate accuracy.
+  \item The remaining error is largest at hot corners, where sub-threshold leakage of the OFF transistors becomes significant, and it is shared by all
+        gates of a corner.
+\end{itemize}
