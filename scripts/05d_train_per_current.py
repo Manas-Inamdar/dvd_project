@@ -85,8 +85,12 @@ def main():
     ap.add_argument("--currents", nargs="*", default=list(CURRENTS))
     ap.add_argument("--params", default="{}", help="JSON overrides of DEFAULT_PARAMS")
     ap.add_argument("--out", default="models")
-    ap.add_argument("--device", default="cuda")
+    ap.add_argument("--device", default="auto", help="cuda, cpu, or auto (cuda if available)")
     args = ap.parse_args()
+    if args.device == "auto":
+        import torch
+        args.device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"device: {args.device}", flush=True)
     params = {**DEFAULT_PARAMS, **json.loads(args.params)}
     out = ROOT / args.out
     (out / "parts").mkdir(parents=True, exist_ok=True)
