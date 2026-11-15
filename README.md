@@ -1,100 +1,136 @@
-# dvd_project - ML-driven PVT-variation-aware leakage estimation (Phase 7 pipeline)
+# ML-Driven PVT Variation Aware Leakage Estimation
 
-Digital VLSI Design course project. It estimates the leakage current of CMOS gates and an 8-bit parity checker under process,
-voltage and temperature (PVT) variation. Machine-learning models are trained on single-transistor SPICE data, and their
-predictions are compared with full SPICE simulations.
+Digital VLSI Design course project. **Team 26, Return of LUZAAZ:** Manas Inamdar, Soham Jahagirdar, Sai Rithvik Achutuni, Gautam Gandhi.
 
-This branch is a **cleaned copy of the Phase 7 pipeline** (from `feature/phase7-per-current-models`) and contains only the files
-that pipeline uses. The original multi-output models, the reports, the documentation and the course material are on `main`.
-The Phase 7 ablation study is on `feature/phase7-per-current-models`.
+The project estimates the leakage current of CMOS circuits under process, voltage and temperature (PVT) variation with machine learning instead of
+full SPICE simulation:
 
-* **Technology:** PTM **22nm_LP** (BSIM4, `22nm_LP.pm`), nominal VDD **1 V**, L = 22 nm, W = 1-8 x Lmin. Simulator: **ngspice 47**.
-* **Pipeline:**
-  1. single-transistor SPICE data (4 cases: NMOS/PMOS x ON/OFF);
-  2. 4 transistor models, each made of one MLP ensemble per terminal current (16 networks in total);
-  3. 5 gates x 18 input cases x 200 PVT corners;
-  4. 8-bit parity checker (28 NAND2), 256 vectors x 200 corners.
-* **Results:**
-  * Gate level: mean accuracy **99.65 %** (median error 0.19 %, P95 1.2 %).
-  * Parity checker: mean accuracy **99.73 %** (median 0.19 %, P95 0.79 %).
-  * Transistor test split: `results/models/test_results.csv`.
-* **Model choice:** the MLP was chosen over LightGBM, kernel ridge and polynomial ridge in a validation study; see
-  `results/model_comparison.md`.
+1. **Transistor models:** one ML model per case (NMOS ON, NMOS OFF, PMOS ON, PMOS OFF) predicts the four terminal currents (Id, Ig, Is, Ib).
+   It is trained on single-transistor SPICE data.
+2. **Gates:** using only these four models, the leakage of INV, NAND2, NOR2, AND2 and OR2 is predicted. This covers 18 input cases at 200 PVT
+   corners, and each prediction is compared with SPICE.
+3. **Test circuit:** an 8-bit parity checker (28 NAND2 gates) is composed from the gate models. All 256 input vectors are evaluated at the same
+   200 corners and compared with SPICE of the full netlist.
 
-## Layout
+**Report:** [`report/report.pdf`](report/report.pdf) (LaTeX source in `report/`).
+
+## Assignment
+
+| Item | Value |
+|---|---|
+| Model file | PTM `22nm_LP.pm` (BSIM4), NMOS and PMOS |
+| Nominal VDD | 1 V (sampled 0.9 to 1.1 V) |
+| Channel length, widths | L = 22 nm; W = 1 to 8 x Lmin |
+| Test circuit | 8-bit parity checker |
+| Simulator | ngspice-47 |
+
+## Results
+
+| Level | Runs | Mean accuracy | Median error | P95 error | Max error |
+|---|---|---|---|---|---|
+| Gates (18 cases x 200 corners) | 3,600 | **99.65 %** | 0.19 % | 1.20 % | 5.7 % |
+| 8-bit parity checker (256 vectors x 200 corners) | 51,200 | **99.73 %** | 0.19 % | 0.79 % | 1.6 % |
+
+* **Model choice:** four model types were compared on the validation sets (MLP, LightGBM, kernel ridge, polynomial ridge). The MLP was the most
+  accurate in every case.
+* **Final transistor models:** an MLP ensemble for each terminal current, with targets normalised by the effective width. Training uses extra data
+  at the rail corners, where gates operate.
+* **Gate leakage:** the predicted transistor currents are composed into gate leakage in a way that satisfies Kirchhoff's current law at every
+  internal node. A plain sum of the currents is off by orders of magnitude.
+
+## Deliverables
+
+| # | Deliverable | Location |
+|---|---|---|
+| 1 | Datasets: 4 CSV files, 10,000 rows each | `data/transistor/{nmos_on,nmos_off,pmos_on,pmos_off}.csv` |
+| 2 | Example netlists: single transistor (4), gates (18), test circuit (4 vectors) | `data/netlists/` |
+| 3 | Data check: Kirchhoff check and three trend plots | `results/data_check/` |
+| 4 | Model comparison table: 4 model types x 4 cases (validation) | `results/model_comparison/` |
+| 5 | Chosen models: test errors, predicted-vs-SPICE plots, 4 model files | `models/*.joblib`, `results/models/` |
+| 6 | Gate results table (18 cases) | `results/gates/gate_results.csv` |
+| 7 | Gate parity plot (log axes) | `results/gates/gate_parity.png` |
+| 8 | Test-circuit results and parity plot | `results/circuit/` |
+| 9 | Code (scripts run in order, fixed seeds) | `scripts/`, `src/dvdml/` |
+| 10 | Report | `report/report.pdf` |
+
+## Repository layout
+
 | Path | Content |
 |---|---|
-| `22nm_LP.pm` | assigned SPICE model card (NMOS + PMOS); path set in `config/project.yaml` |
-| `config/project.yaml` | all assignment parameters and seeds |
-| `src/dvdml/` | library: sampling, netlists, ngspice runner, gates, circuit, ML models (`ml_v2.py`, which reuses the features of `ml.py`), metrics |
-| `scripts/` | numbered pipeline scripts, run in order (see below) |
-| `data/transistor/` | the 4 x 10,000-row datasets (deliverable 1) |
-| `data/transistor_extra/`, `data/transistor_edge/` | extra uniform rows (30,000 per case) and rail-corner rows (20,000 per case), training only |
-| `data/splits/` | fixed-seed 70/15/15 train/validation/test row indices |
-| `data/gates/`, `data/circuit/` | SPICE references: 200 corners, gate runs, parity-checker runs |
-| `data/netlists/` | example netlists: single transistor, gates, parity checker (deliverable 2) |
-| `models/` | the 4 transistor models (`<case>.joblib`), `manifest.json`, per-current metrics in `parts/*.json`, training logs |
-| `results/` | `data_check/`, `models/` (transistor test metrics), `gates/`, `circuit/`, `model_comparison.md` |
-| `tests/` | pytest suite (101 tests) |
+| `22nm_LP.pm` | Assigned SPICE model card |
+| `config/project.yaml` | All assignment parameters, solver options and seeds |
+| `src/dvdml/` | Library: sampling, netlists, ngspice runner, gates, circuit, ML models (`ml.py` for the comparison, `ml_v2.py` for the final models), metrics |
+| `scripts/` | Numbered pipeline scripts (see below) |
+| `data/transistor/` | The four 10,000-row datasets |
+| `data/transistor_extra/`, `data/transistor_edge/` | Training-only data: 30,000 extra uniform rows and 20,000 rail-corner rows per case |
+| `data/splits/` | Fixed-seed 70/15/15 train/validation/test indices |
+| `data/gates/`, `data/circuit/` | The 200 PVT corners and the SPICE references (3,600 gate runs and 51,200 circuit runs) |
+| `data/netlists/` | Example netlists |
+| `models/` | The four final transistor models, their settings (`manifest.json`), per-current validation metrics (`parts/*.json`) and training logs |
+| `results/` | `data_check/`, `model_comparison/`, `model_development/`, `models/`, `gates/`, `circuit/`, `error_analysis/` |
+| `report/` | LaTeX report; `tables/` is generated by `scripts/11_build_report_tables.py` |
+| `tests/` | pytest suite |
 
-## Setup (macOS, Linux, Windows)
-Install [uv](https://docs.astral.sh/uv/) and ngspice 47:
-* macOS: `brew install ngspice`
-* Linux: use your package manager, or build ngspice 47
-* Windows: official build; use `ngspice_con.exe`
+## Setup
+
+Requirements:
+* [uv](https://docs.astral.sh/uv/).
+* ngspice-47. This is needed only for the SPICE steps.
+  * Windows: official build, `ngspice_con.exe`.
+  * macOS: `brew install ngspice`.
+  * Linux: your package manager.
 
 ```
-uv sync                                   # creates .venv with Python 3.12 and the locked package versions (uv.lock)
-export NGSPICE_EXE=ngspice                # macOS/Linux. Windows: set NGSPICE_EXE=C:\path\to\ngspice_con.exe
-uv run python scripts/00_check_env.py     # prints package versions and the ngspice version
+uv sync                                   # Python 3.12 and the locked package versions (uv.lock)
+set NGSPICE_EXE=C:\path\to\ngspice_con.exe    # Windows (macOS/Linux: export NGSPICE_EXE=ngspice)
+uv run python scripts/00_check_env.py     # prints package and ngspice versions
 uv run pytest -q
 ```
 
-## Run (in order)
-```
-uv run python scripts/01_generate_transistor_data.py   # 4 x 10,000 rows + single-transistor example netlists
-uv run python scripts/01b_generate_extra_data.py       # 4 x 30,000 extra uniform rows (training only)
-uv run python scripts/01c_generate_edge_data.py        # 4 x 20,000 rail-corner rows (training only)
-uv run python scripts/02_data_check.py                 # Kirchhoff check, distributions, trend plots -> results/data_check/
-# train the per-current models (resumable: finished parts in models/parts/ are skipped).
-# The final models combine five runs with different settings:
-uv run python -u scripts/05d_train_per_current.py --device cpu --cases nmos_on pmos_on   --currents ig    --params '{"wnorm": "weff", "edge_data": true}'
-uv run python -u scripts/05d_train_per_current.py --device cpu --cases nmos_off pmos_off --currents id is --params '{"wnorm": "weff", "edge_data": true}'
-uv run python -u scripts/05d_train_per_current.py --device cpu --cases nmos_on pmos_on   --currents id is --params '{"wnorm": "weff", "n_members": 1}'
-uv run python -u scripts/05d_train_per_current.py --device cpu --currents ib
-uv run python -u scripts/05d_train_per_current.py --device cpu --cases nmos_off pmos_off --currents ig    --params '{"n_members": 1}'
-uv run python scripts/05e_evaluate_v2.py               # transistor test split + rail-corner errors -> results/models/
-uv run python scripts/06_gate_spice.py                 # 200 corners x 18 gate cases (cross-checked SPICE reference)
-uv run python scripts/07_gate_ml.py                    # gate-level ML vs SPICE -> results/gates/
-uv run python scripts/08_circuit_spice.py              # parity checker, 51,200 SPICE runs (~30 min)
-uv run python scripts/09_circuit_ml.py                 # circuit-level ML vs SPICE -> results/circuit/
-```
-`05e`, `07` and `09` only need the committed models and data; they run in about a minute and do not need torch or ngspice.
-On a Windows `cmd` shell, write the `--params` JSON as `"{\"wnorm\": \"weff\", \"edge_data\": true}"`.
+## Running the pipeline (in order)
 
-## Known issues (flagged, code unchanged)
-* **`05d` defaults to `--device cuda`.** On machines without an NVIDIA GPU, pass `--device cpu` as above. Otherwise it stops
-  with `Torch not compiled with CUDA enabled`. Full training took ~2.5 h on a laptop GPU; on CPU expect several hours.
-* **The ngspice executable defaults to `ngspice_con`** (Windows name) in `config/project.yaml`. Set `NGSPICE_EXE` as shown above.
-* **macOS: torch + LightGBM in one process hangs.** torch and scikit-learn each ship their own `libomp`. After torch has run,
-  LightGBM fails with `OMP: System error #22` and the process hangs. In the test suite this hits
-  `tests/test_ml.py::test_each_family_fits_and_predicts_a_toy_problem[lightgbm]` when the whole suite runs. The test passes on
-  its own. LightGBM belongs to the model-comparison code in `ml.py` and is not used by the Phase 7 pipeline. On macOS run:
-  `uv run pytest -q --deselect "tests/test_ml.py::test_each_family_fits_and_predicts_a_toy_problem[lightgbm]"`
-* **`data/splits/` was created by `scripts/03_train_compare_models.py` on `main`** (function `make_split`, seed 20261105, 70/15/15),
-  which is not part of this branch. The committed `.npz` files are what `05d`/`05e` read. To regenerate them, use that script from `main`.
-* **Re-running on another OS gives tiny differences.** The committed data was made with the official Windows ngspice 47 build.
-  When re-run on macOS (Homebrew ngspice 47):
-  * `05e`/`07`/`09`: identical to ~1e-10 relative.
-  * Transistor datasets (`01`): id and is are identical. Only currents within ~10x of the 1e-15 A noise floor differ.
-  * Gate reference (`06`): leakage within 1e-3 relative (median 3e-6). The cross-check picks the other solve in 92 of 3,600 runs.
-    Gate-level ML accuracy is unchanged at 99.65 %.
-  * Parity checker (`08`, 2-corner subset): within 1e-5.
-  * Committed text files use Windows line endings (CRLF).
+```
+uv run python scripts/01_generate_transistor_data.py   # 4 x 10,000 rows + single-transistor example netlists     [SPICE]
+uv run python scripts/01b_generate_extra_data.py       # 4 x 30,000 extra uniform rows (training only)              [SPICE]
+uv run python scripts/01c_generate_edge_data.py        # 4 x 20,000 rail-corner rows (training only)                [SPICE]
+uv run python scripts/02_data_check.py                 # Kirchhoff check, distributions, trend plots                [SPICE]
+uv run python scripts/03_make_splits.py                # fixed-seed 70/15/15 split
+uv run python scripts/04_compare_models.py             # 4 model types x 4 cases on the validation set
+# final per-current models: five training runs (resumable; existing models/parts/*.joblib are skipped)
+uv run python -u scripts/05d_train_per_current.py --cases nmos_on pmos_on   --currents ig    --params '{"wnorm": "weff", "edge_data": true}'
+uv run python -u scripts/05d_train_per_current.py --cases nmos_off pmos_off --currents id is --params '{"wnorm": "weff", "edge_data": true}'
+uv run python -u scripts/05d_train_per_current.py --cases nmos_on pmos_on   --currents id is --params '{"wnorm": "weff", "n_members": 1}'
+uv run python -u scripts/05d_train_per_current.py --currents ib
+uv run python -u scripts/05d_train_per_current.py --cases nmos_off pmos_off --currents ig    --params '{"n_members": 1}'
+uv run python scripts/05e_evaluate_v2.py               # test-set metrics and predicted-vs-SPICE plots
+uv run python scripts/06_gate_spice.py                 # 200 corners x 18 gate cases                                [SPICE]
+uv run python scripts/07_gate_ml.py                    # gate-level ML vs SPICE
+uv run python scripts/08_circuit_spice.py              # parity checker, 51,200 runs (~30 min)                      [SPICE]
+uv run python scripts/09_circuit_ml.py                 # circuit-level ML vs SPICE
+uv run python scripts/10_error_analysis.py             # error by corner condition
+uv run python scripts/11_build_report_tables.py        # report/tables/*.tex
+cd report && latexmk -pdf report.tex                   # report PDF
+```
+
+* **Reproducing only the ML results:** scripts `05e`, `07`, `09`, `10` and `11` use only the committed data and models. They need no ngspice and no
+  training, and they run in about a minute.
+* **Training device:** `05d` uses a CUDA GPU if one is available, otherwise the CPU (`--device cpu|cuda` to force one). Full training takes about
+  2.5 hours on a laptop GPU.
+* **Windows `cmd` quoting:** write the `--params` JSON as `"{\"wnorm\": \"weff\", \"edge_data\": true}"`.
+* **Fixed seeds:** every random draw uses fixed seeds from `config/project.yaml`.
 
 ## Notes
-* Several points of the assignment are open; the team's assumptions are documented on `main` (`docs/PROJECT_CONTEXT.md`,
-  `docs/DECISIONS.md`) and are **not confirmed by the course staff**. Examples: the gate-leakage definition, gate widths,
-  Kirchhoff-consistent gate composition (D-030), extra and rail-corner training data (D-034, D-043), and the parity-checker
-  architecture (D-035).
-* Gate and circuit SPICE data is evaluation-only (never training data).
+
+* **Assumptions:** the assignment leaves some points open. The team's assumptions are listed in Appendix B of the report and were not confirmed by
+  the course staff:
+  * the leakage definition;
+  * the gate widths;
+  * the Kirchhoff-consistent composition of gate leakage;
+  * the extra training data;
+  * the cross-checked SPICE reference;
+  * the parity-checker architecture.
+* **Gate and circuit SPICE data** is used for evaluation only, never for training.
+* **Decision IDs:** comments of the form `D-0xx` in the code refer to entries in the team's decision log, which is kept in the git history of the
+  project.
+* **macOS:** torch and LightGBM each ship their own OpenMP runtime. When both are loaded in one process, LightGBM can hang. If the full test suite
+  hangs, run `tests/test_ml.py` on its own.
