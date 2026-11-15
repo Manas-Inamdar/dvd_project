@@ -11,7 +11,7 @@ uv run python scripts/01c_generate_edge_data.py          # 4 x 20,000 rail-corne
 uv run python scripts/02_data_check.py                   # Kirchhoff check, distributions, trends  (SPICE)
 uv run python scripts/03_make_splits.py                  # 70/15/15 split, fixed seed
 uv run python scripts/04_compare_models.py               # 4 model types x 4 cases on validation
-# final per-current models: five training runs (see README.md for the exact commands)
+# final per-current models: seven training runs (exact commands in README.md)
 uv run python scripts/05d_train_per_current.py ...       # GPU optional: --device cuda | cpu
 uv run python scripts/05e_evaluate_v2.py                 # test-set metrics, predicted-vs-SPICE plots
 uv run python scripts/06_gate_spice.py                   # 200 corners x 18 gate cases             (SPICE)
