@@ -1,0 +1,21 @@
+nmos_on id: mode=asinh training ...
+    id member 0: val mse (std. units) 0.00517
+    id member 1: val mse (std. units) 0.00504
+    id member 2: val mse (std. units) 0.00761
+nmos_on id: done in 25.5 min | holdout all median 0.0907 vd,vs<0.1 med 0.1289 mean 0.1739 bias -0.0669 | vd,vs>0.9 med 0.2506 mean 0.3712 bias +0.0885 | vs<0.1,vd>0.9 med 0.0255 mean 0.0371 bias +0.0043 | vs>0.9,vd<0.1 med 0.0468 mean 0.0585 bias -0.0498
+nmos_on is: mode=asinh training ...
+    is member 0: val mse (std. units) 0.00673
+    is member 1: val mse (std. units) 0.00605
+    is member 2: val mse (std. units) 0.00644
+nmos_on is: done in 20.3 min | holdout all median 0.1508 vd,vs<0.1 med 0.1858 mean 0.2653 bias +0.0869 | vd,vs>0.9 med 0.4252 mean 0.5743 bias +0.1593 | vs<0.1,vd>0.9 med 0.0470 mean 0.0620 bias -0.0055 | vs>0.9,vd<0.1 med 0.0689 mean 0.0685 bias +0.0048
+pmos_on id: mode=asinh training ...
+    id member 0: val mse (std. units) 0.00302
+    id member 1: val mse (std. units) 0.0041
+    id member 2: val mse (std. units) 0.00575
+pmos_on id: done in 25.4 min | holdout all median 0.0751 vd,vs<0.1 med 0.2782 mean 0.3480 bias -0.1222 | vd,vs>0.9 med 0.1166 mean 0.1951 bias -0.0726 | vs<0.1,vd>0.9 med 0.0242 mean 0.0313 bias -0.0048 | vs>0.9,vd<0.1 med 0.0424 mean 0.0488 bias -0.0184
+pmos_on is: mode=asinh training ...
+    is member 0: val mse (std. units) 0.0071
+    is member 1: val mse (std. units) 0.00694
+    is member 2: val mse (std. units) 0.00769
+pmos_on is: done in 15.4 min | holdout all median 0.1525 vd,vs<0.1 med 0.4653 mean 0.4289 bias -0.0792 | vd,vs>0.9 med 0.2184 mean 0.3043 bias -0.0222 | vs<0.1,vd>0.9 med 0.0993 mean 0.1033 bias -0.0851 | vs>0.9,vd<0.1 med 0.1050 mean 0.1091 bias +0.0869
+EXIT 0
