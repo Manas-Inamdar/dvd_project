@@ -42,3 +42,7 @@ report/*.toc
 report/*.out
 report/*.synctex.gz
 report/report.log
+
+# report: only the PDF is part of the repository (LaTeX source kept locally)
+report/*
+!report/report.pdf
