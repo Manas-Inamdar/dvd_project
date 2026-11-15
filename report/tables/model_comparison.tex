@@ -1,0 +1,32 @@
+\begin{table}[H]
+\centering
+{\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{llrrrrl}
+\toprule
+case & model type & R2 & median err & P95 err & score & best hyper-parameters \\
+\midrule
+NMOS ON & MLP & 0.9963 & 4.30\% & 22.29\% & 0.1329 & 3 hidden layers x 128 tanh units \\
+NMOS ON & LightGBM & 0.9976 & 12.63\% & 61.72\% & 0.3718 & leaves: 31 \\
+NMOS ON & Kernel ridge & 0.9281 & 69.44\% & 5359.93\% & 27.15 & gamma: 0.01, alpha: 0.001 \\
+NMOS ON & Polynomial ridge & 0.9068 & 71.43\% & 30690.41\% & 153.8 & degree: 4, alpha: 10.0 \\
+NMOS OFF & MLP & 0.9951 & 1.69\% & 14.82\% & 0.08256 & 3 hidden layers x 96 tanh units \\
+NMOS OFF & LightGBM & 0.9794 & 8.78\% & 63.18\% & 0.3598 & leaves: 31 \\
+NMOS OFF & Kernel ridge & 0.9316 & 42.69\% & 161.28\% & 1.02 & gamma: 0.01, alpha: 0.001 \\
+NMOS OFF & Polynomial ridge & 0.9302 & 41.67\% & 232.97\% & 1.373 & degree: 4, alpha: 0.1 \\
+PMOS ON & MLP & 0.9995 & 2.04\% & 12.16\% & 0.07098 & 3 hidden layers x 96 tanh units \\
+PMOS ON & LightGBM & 0.9968 & 13.15\% & 65.96\% & 0.3955 & leaves: 31 \\
+PMOS ON & Kernel ridge & 0.9327 & 68.42\% & 4639.72\% & 23.54 & gamma: 0.01, alpha: 0.001 \\
+PMOS ON & Polynomial ridge & 0.9137 & 70.11\% & 27706.76\% & 138.9 & degree: 4, alpha: 10.0 \\
+PMOS OFF & MLP & 0.995 & 4.29\% & 24.75\% & 0.1452 & 3 hidden layers x 128 tanh units \\
+PMOS OFF & LightGBM & 0.9785 & 8.56\% & 65.10\% & 0.3683 & leaves: 31 \\
+PMOS OFF & Kernel ridge & 0.9383 & 35.69\% & 151.66\% & 0.9368 & gamma: 0.03, alpha: 0.001 \\
+PMOS OFF & Polynomial ridge & 0.9287 & 40.06\% & 187.49\% & 1.138 & degree: 4, alpha: 0.001 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+}
+\caption{Model comparison on the \emph{validation} set: 4 model types $\times$ 4 cases (best hyper-parameters of each type). $R^2$ on the signed-log target; relative errors on resolved currents ($|I|>10^{-15}$\,A), averaged over the scored currents; score $=\frac12$(median + P95), lower is better. Sorted by score within each case.}
+\label{tab:comparison}
+\end{table}
+

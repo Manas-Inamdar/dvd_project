@@ -1,0 +1,24 @@
+\begin{table}[H]
+\centering
+{\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{llrrrr}
+\toprule
+case & T [C] & runs & OFF-channel share of leakage & median err & bias \\
+\midrule
+INV 0 & -40 to 0 & 53 & 0.16\% & 0.09\% & 0.04\% \\
+INV 0 & 0 to 40 & 47 & 0.99\% & 0.13\% & -0.15\% \\
+INV 0 & 40 to 80 & 50 & 4.56\% & 0.20\% & -0.41\% \\
+INV 0 & 80 to 125 & 50 & 13.01\% & 0.93\% & -1.42\% \\
+INV 1 & -40 to 0 & 53 & 1.26\% & 0.31\% & 0.45\% \\
+INV 1 & 0 to 40 & 47 & 3.33\% & 0.34\% & 0.20\% \\
+INV 1 & 40 to 80 & 50 & 14.47\% & 0.24\% & 0.03\% \\
+INV 1 & 80 to 125 & 50 & 30.17\% & 0.66\% & -0.66\% \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+}
+\caption{Inverter: share of the leakage carried by the channel (sub-threshold) current of the OFF transistor, and the ML error, by temperature.}
+\label{tab:offshare}
+\end{table}
+

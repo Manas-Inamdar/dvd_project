@@ -1,0 +1,20 @@
+\begin{table}[H]
+\centering
+{\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lrrrrr}
+\toprule
+case & abs. median [A] & abs. P95 [A] & abs. max [A] & rel. median & rel. P95 \\
+\midrule
+NMOS ON & $2.72\times10^{-16}$ & $4.12\times10^{-15}$ & $5.14\times10^{-14}$ & $2.55\times10^{-10}$ & $2.31\times10^{-4}$ \\
+NMOS OFF & $1.76\times10^{-25}$ & $2.51\times10^{-22}$ & $5.39\times10^{-21}$ & $5.68\times10^{-11}$ & $2.62\times10^{-10}$ \\
+PMOS ON & $6.84\times10^{-17}$ & $3.55\times10^{-15}$ & $4.43\times10^{-14}$ & $1.84\times10^{-10}$ & $8.73\times10^{-5}$ \\
+PMOS OFF & $3.30\times10^{-17}$ & $3.19\times10^{-16}$ & $1.80\times10^{-15}$ & $1.19\times10^{-3}$ & $9.34\times10^{-1}$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+}
+\caption{Kirchhoff check on the four 10{,}000-row datasets: residual $|I_d+I_g+I_s+I_b|$ per sample, absolute and relative to the largest terminal current of the sample (relative values for samples whose largest current exceeds $10^{-16}$\,A).}
+\label{tab:kirchhoff}
+\end{table}
+

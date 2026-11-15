@@ -1,0 +1,28 @@
+\section{Assumptions and design choices}\label{app:assumptions}
+The assignment leaves several points open. The following choices were made by the team; they are our assumptions and were not confirmed by the
+course staff.
+\begin{enumerate}
+  \item \textbf{Gate leakage definition.} The leakage of a gate or circuit is the total static current delivered by all sources at $\Vdd$ (supply plus
+        inputs held high), which equals the current absorbed at $0$\,V. It is the complete static current of the cell, including the gate current
+        drawn from the input drivers.
+  \item \textbf{Gate transistor widths.} In units of $\Lmin$: INV $W_n=1$, $W_p=2$; NAND2 $W_n=W_p=2$; NOR2 $W_n=1$, $W_p=4$; AND2/OR2 use the
+        NAND2/NOR2 sizes plus the INV. This is the usual sizing convention (PMOS about twice the NMOS, series stacks doubled) and lies inside the
+        $1$--$8\Lmin$ training range.
+  \item \textbf{ON/OFF routing.} A gate transistor uses the ON model of its type if its gate voltage is on the conducting side of $\Vdd/2$, otherwise
+        the OFF model. Since all inputs are at the rails, this is unambiguous.
+  \item \textbf{Kirchhoff-consistent composition} of the gate leakage from the predicted currents (\cref{sec:gates_method}). The plain sum of the
+        predicted terminal currents is reported as a baseline (\cref{tab:estimators}).
+  \item \textbf{Additional training data.} The delivered datasets have 10{,}000 rows per case drawn exactly as specified, and the validation and
+        test splits are taken from them. As the assignment allows more samples, 30{,}000 further uniform rows and 20{,}000 rail-corner rows per case
+        were simulated with the same netlists and used for training (and, for the rail-corner rows, partly for validation). The rail-corner rows
+        deliberately depart from uniform $V_d$/$V_s$ sampling; they use only the fact that logic nodes sit at the rails.
+  \item \textbf{SPICE reference cross-check.} The reference value of a gate or circuit run is the mandated-option solution where it agrees with a
+        tight-tolerance solve within 1\,\%, otherwise the tight solution (3.5\,\% of the gate runs, no circuit run).
+  \item \textbf{Parity-checker architecture.} Balanced tree of seven XOR2 cells, each of four NAND2 gates (28 NAND2, 112 transistors). Any of the five
+        gates could be used; NAND2 keeps the mapping to Part~B direct.
+  \item \textbf{Junction geometry.} $AD=AS=W\cdot L_{\mathrm{diff}}$, $L_{\mathrm{diff}}=44\,\mathrm{nm}$ (course-group clarification); PD/PS not set.
+  \item \textbf{Noise floor.} Currents below $10^{-15}$\,A are numerical noise of the reference; relative errors are evaluated above this floor.
+  \item \textbf{Development process.} The final per-current design was found after the gate-level accuracy of the first models fell short of the
+        target. The diagnosis used the structure of the gate composition and gate-level errors, but every model was trained, tuned and selected on
+        transistor data only.
+\end{enumerate}
