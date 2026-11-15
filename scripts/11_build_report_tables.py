@@ -216,7 +216,7 @@ def deliverables():
         ("7", "Gate parity plot (log axes)", "results/gates/gate_parity.png", [R / "results/gates/gate_parity.png"]),
         ("8", "Test-circuit results and parity plot", "results/circuit/", [R / "results/circuit/circuit_parity.png"]),
         ("9", "Code: scripts run in order, fixed seeds", "scripts/, src/dvdml/", [R / "scripts/01_generate_transistor_data.py"]),
-        ("10", "Typed report", "report/", [R / "report/report.tex"]),
+        ("10", "Typed report", "report/report.pdf", [R / "report/report.pdf"]),
     ]
     rows = [{"#": n, "deliverable": d, "location": loc, "status": "present" if all(p.exists() for p in ps) else "missing"} for n, d, loc, ps in items]
     write("deliverables", tabular(pd.DataFrame(rows), caption="Deliverables and their location in the repository (status checked automatically).",
