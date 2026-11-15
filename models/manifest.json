@@ -13,15 +13,15 @@
           "edge": 4.0,
           "feat": true,
           "wnorm": "weff",
-          "n_members": 1,
+          "n_members": 3,
           "polish_rounds": 6,
           "polish_iter": 300,
           "seed": 0,
           "threads": 4,
           "adam_fp32": true,
-          "edge_data": false
+          "edge_data": true
         },
-        "members": 1
+        "members": 3
       },
       "ig": {
         "mode": "log",
@@ -86,9 +86,9 @@
         "members": 3
       }
     },
-    "test_macro_median_err": 0.07059415003704901,
-    "test_macro_p95_err": 0.3872230815150263,
-    "test_macro_r2_signed_log": 0.9974107155835465,
+    "test_macro_median_err": 0.061344242291881595,
+    "test_macro_p95_err": 0.2540675285478177,
+    "test_macro_r2_signed_log": 0.9977010947288945,
     "currents_scored": "id,ig,is,ib",
     "n_test": 1500
   },
