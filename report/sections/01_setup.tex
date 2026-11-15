@@ -1,0 +1,41 @@
+\section{Introduction and setup}\label{sec:setup}
+
+The static (leakage) current of a CMOS circuit depends strongly on process parameters, supply voltage and temperature (PVT). Estimating it with
+full SPICE simulation for every corner and every input vector is expensive. This project replaces SPICE with machine learning in a hierarchical way:
+\begin{enumerate}
+  \item \textbf{Part A -- transistor models.} Single NMOS and PMOS transistors are simulated in their ON and OFF states over random PVT and bias
+        conditions, and one ML model per case predicts the four terminal currents $(I_d, I_g, I_s, I_b)$.
+  \item \textbf{Part B -- gates.} Using only these four models, the leakage of INV, NAND2, NOR2, AND2 and OR2 is predicted for every input combination
+        (18 cases) at 200 random PVT corners and compared with transistor-level SPICE simulations of the gates.
+  \item \textbf{Part C -- test circuit.} The leakage of the assigned test circuit is composed from the gate-level predictions and compared with a SPICE
+        simulation of the complete netlist at the same corners.
+\end{enumerate}
+
+\subsection{Assignment and tools}
+\begin{center}\small
+\begin{tabular}{>{\bfseries}l p{0.62\textwidth}}
+\toprule
+Item & Value\\
+\midrule
+Team & 26 -- Return of LUZAAZ\\
+Model file & PTM \texttt{22nm\_LP.pm} (low-power 22\,nm, BSIM4 \texttt{level=54}, \texttt{version=4.0}), NMOS and PMOS cards\\
+Nominal supply & $\Vdd=1\,\mathrm{V}$, sampled uniformly in $0.9$--$1.1\,\mathrm{V}$\\
+Channel length & $L=\Lmin=22\,\mathrm{nm}$; widths $W=1$--$8\times\Lmin$ for NMOS and PMOS\\
+Test circuit & 8-bit parity checker\\
+Simulator & ngspice-47 (official 64-bit Windows build, KLU solver), DC operating point (\texttt{op}) analyses in batch mode\\
+Solver options & \texttt{.options gmin=1e-18 abstol=1e-18 reltol=1e-6 vntol=1e-9} in every netlist\\
+Software & Python 3.12 with NumPy, pandas, scikit-learn, LightGBM and PyTorch; exact versions locked in \texttt{uv.lock}\\
+Randomness & every random draw uses fixed seeds from \texttt{config/project.yaml} (base seed 20261105)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Following a clarification in the course group, the drain and source junction areas are set to $AD=AS=W\cdot L_{\mathrm{diff}}$ with
+$L_{\mathrm{diff}}=44\,\mathrm{nm}$ (the value used in the example netlist provided with the assignment) for every transistor in every netlist; perimeters (PD/PS) are not set.
+The model-file header mentions $0.95\,\mathrm{V}$; the assigned $1\,\mathrm{V}$ is used throughout.
+
+\subsection{Repository and pipeline}
+All results in this report are produced by the numbered scripts in \texttt{scripts/}, run in order (Appendix~\ref{app:reproduce}), using the library
+\texttt{src/dvdml/}. The scripts read every assignment parameter from \texttt{config/project.yaml} and the model card from \texttt{22nm\_LP.pm}.
+Every table in this report is generated from the result files by \texttt{scripts/11\_build\_report\_tables.py}; no number in a table is typed by hand.
+The location of each deliverable is listed in Appendix~\ref{app:deliverables}.
