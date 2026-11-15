@@ -1,0 +1,25 @@
+[project]
+name = "dvdml"
+version = "0.7.0"
+description = "ML-driven PVT-aware leakage estimation (22nm LP, 8-bit parity checker) - Phase 7 per-current models"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "numpy",
+    "pandas==2.3.3",   # pinned: pandas 3.x binaries are blocked by Windows Smart App Control on one dev PC
+    "scipy",
+    "scikit-learn",
+    "matplotlib",
+    "pyyaml",
+    "joblib",
+    "lightgbm",        # only used by the model-family code in src/dvdml/ml.py (kept because ml_v2 reuses its features)
+    "torch",           # training only (scripts/05d); prediction of the saved models is pure numpy
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.uv]
+package = false        # scripts add src/ to sys.path themselves; no build step needed
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

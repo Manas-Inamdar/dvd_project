@@ -36,7 +36,7 @@ def summarize(df: pd.DataFrame, ml="leak_ml", ref="leak_spice") -> dict:
 def main():
     import argparse
     ap = argparse.ArgumentParser()
-    ap.add_argument("--models-dir", default="models_saved", help="models_saved = 10,000-row models (headline); models_selected = enlarged-set extension")
+    ap.add_argument("--models-dir", default="models", help="folder with the four <case>.joblib transistor models")
     ap.add_argument("--out-dir", default="results/gates")
     args = ap.parse_args()
     cfg = load_config()

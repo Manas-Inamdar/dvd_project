@@ -3,7 +3,7 @@
 Outputs
   data/transistor/<case>.csv           10,000 valid rows, columns exactly as in the assignment
   data/transistor/generation_log.json  counts, failures, timing, simulator version, seed
-  netlists/single_transistor/<case>.cir  example netlist (first sample of each dataset)
+  data/netlists/single_transistor/<case>.cir  example netlist (first sample of each dataset)
 Usage: python scripts/01_generate_transistor_data.py [--n 10000] [--workers 12]
 """
 import argparse
@@ -35,7 +35,7 @@ def main():
     nom = modelcard.nominals(text, cfg["assignment"]["process_params"])
     out = Path(args.outdir)
     out.mkdir(parents=True, exist_ok=True)
-    (ROOT / "netlists" / "single_transistor").mkdir(parents=True, exist_ok=True)
+    (ROOT / "data" / "netlists" / "single_transistor").mkdir(parents=True, exist_ok=True)
 
     ver = subprocess.run([ngspice_exe(cfg), "-v"], capture_output=True, text=True).stdout
     ver = next((ln.strip("* ").strip() for ln in ver.splitlines() if "ngspice-" in ln), "unknown")
@@ -46,7 +46,7 @@ def main():
         df, failed = dataset.generate_case(case, n, cfg, nom, text, workers=args.workers)
         df.to_csv(out / f"{case}.csv", index=False)
         net = single_transistor_netlist(case, df.iloc[0], cfg, text, title=f"example single transistor netlist: {case} (first dataset row)")
-        (ROOT / "netlists" / "single_transistor" / f"{case}.cir").write_text(net, encoding="utf-8")
+        (ROOT / "data" / "netlists" / "single_transistor" / f"{case}.cir").write_text(net, encoding="utf-8")
         log["cases"][case] = {"rows": len(df), "failed_sims_replaced": failed, "seconds": round(time.time() - t0, 1)}
         print(f"{case}: {len(df)} rows, {failed} failed sims replaced, {time.time() - t0:.0f}s")
     (out / "generation_log.json").write_text(json.dumps(log, indent=2))

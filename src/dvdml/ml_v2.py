@@ -23,7 +23,7 @@ from .metrics import CURRENTS, I_FLOOR
 from .ml import featurize
 
 LMIN = 22e-9
-WINT = 5e-9            # BSIM4 wint of both cards in context/models/22nm_LP.pm (Weff = W - 2*wint; dwg = dwb = 0)
+WINT = 5e-9            # BSIM4 wint of both cards in 22nm_LP.pm (Weff = W - 2*wint; dwg = dwb = 0)
 _LN10 = np.log(10.0)
 K_B = 8.617333262e-5  # eV/K
 

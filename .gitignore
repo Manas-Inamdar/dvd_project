@@ -1,8 +1,4 @@
 # --- PRIVACY: never commit chat screenshots / personal images ---
-context/WA/
-context/*.png
-context/*.jpg
-context/*.jpeg
 Screenshot*.png
 Screenshot*.jpg
 WhatsApp Image*
@@ -29,13 +25,8 @@ tmp/
 Thumbs.db
 .vscode/
 .idea/
-models_candidates/
-# per-current parts duplicate the composite models_v2/<case>.joblib (their .json metrics ARE committed); study/ = ablations, metrics + logs only
-models_v2/parts/*.joblib
-study/**/*.joblib
+
+# per-current parts duplicate the composite models/<case>.joblib (their .json metrics ARE committed)
+models/parts/*.joblib
+# resumable chunks of scripts/08 (merged into data/circuit/circuit_spice.csv)
 data/circuit/parts/
-dist/_*
-# Phase 7 ablation stages: run-level CSVs stay local (summaries, plots and results/stage_comparison*.csv are committed)
-results/study_*/gates/gate_devices_ml.csv
-results/study_*/gates/gate_runs_ml.csv
-results/study_*/circuit/circuit_runs_ml.csv

@@ -1,12 +1,12 @@
-"""Phase 7 (D-041): evaluate the per-current models (models_v2/) ONCE on the original TEST split, same metrics as scripts/04 plus rail-corner errors.
+"""Phase 7 (D-041): evaluate the per-current models (models/) ONCE on the original TEST split, same metrics as scripts/04 plus rail-corner errors.
 
 Outputs
-  results/models_v2/test_results.csv          per case and current: test metrics (metrics.summarize) + macro rows
-  results/models_v2/test_rail_corners.csv     per case, current and (Vd, Vs) rail corner: median / mean / P95 error and bias on the test split
-  results/models_v2/holdout_rail_corners.csv  same on the 5,000 held-out extra rows (larger corner samples)
-  results/models_v2/edge_holdout_rail_corners.csv  same on the 2,000 held-out rail-corner rows of data/transistor_edge (if generated, D-043)
-  results/models_v2/pred_vs_spice_<case>.png  predicted-vs-SPICE plot per case
-  models_v2/manifest.json                     what each case uses
+  results/models/test_results.csv          per case and current: test metrics (metrics.summarize) + macro rows
+  results/models/test_rail_corners.csv     per case, current and (Vd, Vs) rail corner: median / mean / P95 error and bias on the test split
+  results/models/holdout_rail_corners.csv  same on the 5,000 held-out extra rows (larger corner samples)
+  results/models/edge_holdout_rail_corners.csv  same on the 2,000 held-out rail-corner rows of data/transistor_edge (if generated, D-043)
+  results/models/pred_vs_spice_<case>.png  predicted-vs-SPICE plot per case
+  models/manifest.json                        what each case uses
 """
 import importlib.util
 import json
@@ -31,8 +31,8 @@ _spec.loader.exec_module(train_v2)
 def main():
     import argparse
     ap = argparse.ArgumentParser()
-    ap.add_argument("--models-dir", default="models_v2")
-    ap.add_argument("--out-dir", default="results/models_v2")
+    ap.add_argument("--models-dir", default="models")
+    ap.add_argument("--out-dir", default="results/models")
     args = ap.parse_args()
     cfg = load_config()
     out = ROOT / args.out_dir

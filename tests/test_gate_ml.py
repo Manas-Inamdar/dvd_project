@@ -11,7 +11,7 @@ from dvdml.refsolve import solve_with_crosscheck
 from dvdml.sampling import CASES
 
 CFG = load_config()
-HAVE = (all((REPO_ROOT / "models_saved" / f"{c}.joblib").exists() for c in CASES)
+HAVE = (all((REPO_ROOT / "models" / f"{c}.joblib").exists() for c in CASES)
         and (REPO_ROOT / "data" / "gates" / "gate_spice.csv").exists())
 
 
@@ -48,7 +48,7 @@ def test_route_by_gate_voltage():
 
 @pytest.mark.skipif(not HAVE, reason="models/gate data not generated")
 def test_gate_prediction_is_close_to_spice_and_naive_sum_is_not():
-    models = {c: joblib.load(REPO_ROOT / "models_saved" / f"{c}.joblib") for c in CASES}
+    models = {c: joblib.load(REPO_ROOT / "models" / f"{c}.joblib") for c in CASES}
     runs = pd.read_csv(REPO_ROOT / "data" / "gates" / "gate_spice.csv", dtype={"inputs": str})
     corners = pd.read_csv(REPO_ROOT / "data" / "gates" / "corners.csv")
     sub = runs.groupby("case").head(6)                       # 6 corners per case = 108 runs

@@ -8,11 +8,11 @@ Data (TRANSISTOR data only; gate/circuit SPICE data is never touched here):
   with params {"edge_data": true} (D-043) additionally: rail-corner rows of data/transistor_edge (scripts/01c):
     rows 0..15,999 -> train, 16,000..17,999 -> val, 18,000..19,999 -> "edge_holdout" (reported only)
 
-Outputs (in --out, default models_v2/):
+Outputs (in --out, default models/):
   parts/<case>__<current>.joblib    one CurrentModel per current
   parts/<case>__<current>.json      validation / holdout / rail-corner errors of that current
   <case>.joblib                     CompositeTransistorModel (assembled when all four currents of the case exist)
-Usage: python -u scripts/05d_train_per_current.py [--cases nmos_on ...] [--currents ig ...] [--params '{"epochs": 1500}'] [--out models_v2]
+Usage: python -u scripts/05d_train_per_current.py [--cases nmos_on ...] [--currents ig ...] [--params '{"epochs": 1500}'] [--out models]
 """
 import argparse
 import json
@@ -84,7 +84,7 @@ def main():
     ap.add_argument("--cases", nargs="*", default=list(CASES))
     ap.add_argument("--currents", nargs="*", default=list(CURRENTS))
     ap.add_argument("--params", default="{}", help="JSON overrides of DEFAULT_PARAMS")
-    ap.add_argument("--out", default="models_v2")
+    ap.add_argument("--out", default="models")
     ap.add_argument("--device", default="cuda")
     args = ap.parse_args()
     params = {**DEFAULT_PARAMS, **json.loads(args.params)}

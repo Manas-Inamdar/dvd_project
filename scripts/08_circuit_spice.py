@@ -3,7 +3,7 @@
 Each run is solved with the mandated options and with the tight cross-check solve (see dvdml/refsolve.py, D-031).
 Outputs
   data/circuit/circuit_spice.csv        per run: vector, corner, vdd, temp, v_out, expected parity, leakage (D-011), ground-side leakage, ref_source
-  netlists/circuit/parity8_<bits>.cir   example netlists (corner 0) for 4 input vectors
+  data/netlists/circuit/parity8_<bits>.cir   example netlists (corner 0) for 4 input vectors
 Resumable: finished corner chunks are stored in data/circuit/parts/ and skipped on a re-run.
 Usage: python scripts/08_circuit_spice.py [--workers 12] [--chunk 20]
 """
@@ -52,9 +52,9 @@ def main():
     if args.corners:
         corners = corners.iloc[: args.corners]
     out = ROOT / "data" / "circuit"; parts = out / "parts"; parts.mkdir(parents=True, exist_ok=True)
-    (ROOT / "netlists" / "circuit").mkdir(parents=True, exist_ok=True)
+    (ROOT / "data" / "netlists" / "circuit").mkdir(parents=True, exist_ok=True)
     for bits in [(0,) * 8, (1,) + (0,) * 7, (1, 0, 1, 1, 0, 0, 1, 0), (1,) * 8]:
-        (ROOT / "netlists" / "circuit" / f"parity8_{''.join(map(str, bits))}.cir").write_text(
+        (ROOT / "data" / "netlists" / "circuit" / f"parity8_{''.join(map(str, bits))}.cir").write_text(
             circuit.circuit_netlist(bits, corners.iloc[0], cfg, text, title=f"example parity8 netlist, inputs {''.join(map(str, bits))}"), encoding="utf-8")
 
     t0 = time.time()

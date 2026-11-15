@@ -1,6 +1,6 @@
 # Single source of truth for the assignment parameters (see docs/PROJECT_CONTEXT.md).
 assignment:
-  model_file: context/models/22nm_LP.pm
+  model_file: 22nm_LP.pm
   vdd_nom: 1.0            # V (assigned)
   vdd_tol: 0.10           # +/-10 %
   lmin: 22.0e-9           # m, = feature size

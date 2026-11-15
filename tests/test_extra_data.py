@@ -24,9 +24,3 @@ def test_extra_rows_are_valid_and_disjoint_from_the_specified_dataset(case):
     for p, nom in NOM[dev].items():
         assert (ex[p] / nom).between(0.9, 1.1).all()
     assert not set(ex.vdd.round(12)) & set(base.vdd.round(12))      # independent random stream: no sample is shared with the specified dataset
-
-
-def test_selection_files_exist_and_use_only_validation_for_the_choice():
-    sel = pd.read_csv(REPO_ROOT / "results" / "models" / "final_selection.csv")
-    assert set(sel.candidate) == {"10k", "enlarged"} and len(sel) == 8
-    assert {"val_score" not in c for c in sel.columns} and "score" in sel.columns

@@ -1,4 +1,0 @@
-Team No.	Team Name	Member 1	Member 2	Member 3	Member 4	Model file	Nominal VDD	Test circuit
-26	Return of LUZAAZ	[redacted]	[redacted]	[redacted]	[redacted]	22nm_LP	1V	8-bit Parity Checker
-
-(Sanitized copy: member names removed. The original line is kept only in the local, non-versioned context folder.)
