@@ -1,9 +1,8 @@
-# --- PRIVACY: never commit chat screenshots / personal images ---
+# --- never commit screenshots / personal media ---
 Screenshot*.png
 Screenshot*.jpg
-WhatsApp Image*
-WhatsApp Video*
-WhatsApp Audio*
+*.jpeg
+*.mp4
 *.opus
 
 # --- Python / tooling ---

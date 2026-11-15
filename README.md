@@ -122,8 +122,7 @@ uv run python scripts/11_build_report_tables.py        # LaTeX tables for the re
 
 ## Notes
 
-* **Assumptions:** the assignment leaves some points open. The team's assumptions are listed in Appendix B of the report and were not confirmed by
-  the course staff:
+* **Assumptions:** the assignment leaves some points open. Our assumptions are listed in Appendix B of the report:
   * the leakage definition;
   * the gate widths;
   * the Kirchhoff-consistent composition of gate leakage;

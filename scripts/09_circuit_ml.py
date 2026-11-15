@@ -2,7 +2,7 @@
 
 For every (input vector, corner): the logic value at the inputs of each of the 28 NAND2 gates is determined by logic propagation; the gate
 model of Part B for that input combination (NAND2_00/01/10/11) and that corner gives the gate leakage (SPICE-recorded node voltages of the isolated gate at the SAME
-corner feed the transistor models, exactly as in Part B -- assumption Q6); the 28 gate leakages are summed.
+corner feed the transistor models, exactly as in Part B); the 28 gate leakages are summed.
 This ignores loading between gates and assumes every gate input sits at exactly 0 or VDD.
 Uses the gate-level predictions of scripts/07_gate_ml.py (results/gates/gate_runs_ml.csv), so run that script first (and again after retraining the models).
 

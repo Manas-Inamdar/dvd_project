@@ -4,7 +4,7 @@ assignment:
   vdd_nom: 1.0            # V (assigned)
   vdd_tol: 0.10           # +/-10 %
   lmin: 22.0e-9           # m, = feature size
-  ldiff: 44.0e-9          # m, from TA example netlist (open question Q3)
+  ldiff: 44.0e-9          # m, as in the example netlist given with the assignment
   w_min_mult: 1           # W = 1 x Lmin ...
   w_max_mult: 8           # ... to 8 x Lmin
   temp_min: -40.0         # degC
@@ -15,7 +15,7 @@ assignment:
 spice:
   # Required by the assignment on EVERY netlist
   options: "gmin=1e-18 abstol=1e-18 reltol=1e-6 vntol=1e-9"
-  # junction areas AD = AS = W x Ldiff (course chat clarification T1). PD/PS intentionally omitted (open question Q3).
+  # junction areas AD = AS = W x Ldiff. PD/PS intentionally omitted (see report Appendix B).
   add_junction_areas: true
   # ngspice executable; overridden by the NGSPICE_EXE environment variable
   exe: ngspice_con

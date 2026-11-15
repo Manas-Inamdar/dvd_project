@@ -1,6 +1,6 @@
 """Static CMOS gate topologies (INV, NAND2, NOR2, AND2, OR2): one definition feeds BOTH the SPICE netlist and the ML prediction.
 
-Widths are multiples of Lmin (decision D-012, open question Q2): INV Wn=1 Wp=2; NAND2 Wn=2 Wp=2; NOR2 Wn=1 Wp=4.
+Widths are multiples of Lmin (decision D-012, report Appendix B): INV Wn=1 Wp=2; NAND2 Wn=2 Wp=2; NOR2 Wn=1 Wp=4.
 Device terminals are (drain, gate, source, body) node names. Nodes: 'vdd', 'vss', inputs 'a','b', internal 'x' (NAND2 series NMOS node),
 'y' (NOR2 series PMOS node), 'n' (output of the NAND2/NOR2 stage inside AND2/OR2), 'out'.
 
