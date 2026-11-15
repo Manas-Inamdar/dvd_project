@@ -58,7 +58,7 @@ The final models keep the winning model type (tanh MLP, Adam + L-BFGS) and chang
   \item \textbf{six additional physics features}: oxide fields $V_{gs}/t_{ox}$, $V_{gd}/t_{ox}$, $\Vdd/t_{ox}$, gate overdrives $|V_{gs}|-|V_{th0}|$,
         $|V_{gd}|-|V_{th0}|$, and $|V_{th0}|/kT$ (21 inputs in total);
   \item \textbf{training data}: the 7{,}000 training rows plus the 25{,}000 extra uniform rows, and for the currents that dominate leakage
-        (ON $I_g$, OFF $I_d/I_s$) the 16{,}000 rail-corner rows (\cref{sec:data});
+        (ON $I_g$, OFF $I_d/I_s$), and for the NMOS ON drain current, the 16{,}000 rail-corner rows (\cref{sec:data});
   \item a fixed sample weight $1+4\,(e(V_d)+e(V_s))$, $e(v)=\exp(-\text{distance to the nearer rail}/0.05\Vdd)$, that emphasises the rails;
   \item \textbf{network}: 4 hidden layers of 128 tanh units (about 52{,}000 weights), Adam in float32 (1500 epochs, batch 512, learning rate
         $3\times10^{-3}$ with cosine decay, best validation state kept), then up to six float64 L-BFGS rounds, each kept only if the validation loss improves;
@@ -76,7 +76,12 @@ against SPICE currents. The four model files are \texttt{models/<case>.joblib}; 
 \input{tables/chosen_macro}
 \input{tables/chosen_models}
 
-%RETRAIN-PARAGRAPH%
+The drain and source currents of the ON models have the largest errors (NMOS ON median 9.0\,\% and 14.7\,\%). These are the channel currents at
+small $V_{ds}$, where the current passes through zero and changes sign, so a small absolute error is a large relative one. They are not used in the
+leakage (\cref{sec:gates_method}), but they are part of the models' output. The NMOS ON drain-current network was therefore retrained as a
+three-member ensemble with the rail-corner data. On the validation split this lowered its median error from 13.7\,\% to 9.0\,\% and its P95 from
+109\,\% to 45\,\%, and removed its bias ($+16\,\%\to-2\,\%$). The same retraining did not improve the NMOS ON source current on the validation
+split (P95 77\,\% against 47\,\%), so the original source-current network was kept. Gate- and circuit-level results are unchanged by construction.
 
 The currents that determine gate leakage are predicted very accurately. On the test rows the ON-state gate current has a median error of
 0.2--0.6\,\% and the OFF-state channel currents 1.3--2.9\,\%. At the gate operating points themselves---rail-corner hold-out rows with $V_d$ and $V_s$
