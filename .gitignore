@@ -30,3 +30,15 @@ Thumbs.db
 models/parts/*.joblib
 # resumable chunks of scripts/08 (merged into data/circuit/circuit_spice.csv)
 data/circuit/parts/
+
+# best model of each family from scripts/04 (model comparison; large, regenerated)
+models_candidates/
+
+# LaTeX build files (report/report.pdf IS committed)
+report/*.aux
+report/*.fls
+report/*.fdb_latexmk
+report/*.toc
+report/*.out
+report/*.synctex.gz
+report/report.log
